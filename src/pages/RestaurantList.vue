@@ -200,8 +200,13 @@ const loadFromStorage = () => {
 
 <style scoped>
 .restaurant-card {
+  border: 1px solid rgba(42, 157, 143, 0.1);
   margin-bottom: 20px;
   transition: transform 0.3s;
+}
+
+.restaurant-card:hover {
+  box-shadow: 0 8px 20px rgba(29, 61, 50, 0.1);
 }
 
 .restaurant-info {
@@ -228,7 +233,7 @@ const loadFromStorage = () => {
 }
 
 .price-range {
-  color: #e6a23c;
+  color: var(--secondary-color);
   font-weight: 500;
   margin-bottom: 15px;
 }
@@ -246,5 +251,11 @@ const loadFromStorage = () => {
   display: flex;
   gap: 10px;
   margin-top: 15px;
+}
+
+:deep(.el-tag.el-tag--success) {
+  background-color: rgba(42, 157, 143, 0.1);
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
 }
 </style> 

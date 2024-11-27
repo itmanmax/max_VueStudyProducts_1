@@ -59,4 +59,22 @@ const removeFavorite = (index) => {
 .mt-20 {
   margin-top: 20px;
 }
+
+.el-card {
+  border: 1px solid rgba(42, 157, 143, 0.1);
+  transition: all 0.3s ease;
+}
+
+.el-card:hover {
+  box-shadow: 0 8px 20px rgba(29, 61, 50, 0.1);
+}
+
+:deep(.el-timeline-item__node) {
+  background-color: var(--secondary-color);
+}
+
+:deep(.el-button--danger) {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
 </style> 

@@ -3,6 +3,9 @@ import Home from '../pages/Home.vue'
 import RestaurantDetails from '../pages/RestaurantDetails.vue'
 import UserInfo from '../pages/UserInfo.vue'
 import RestaurantList from '@/pages/RestaurantList.vue'
+import DishDetails from '../pages/DishDetails.vue'
+import UserProfile from '../pages/UserProfile.vue'
+import UserManagement from '../pages/UserManagement.vue'
 
 const routes = [
   {
@@ -25,6 +28,21 @@ const routes = [
     path: '/restaurants',
     name: 'RestaurantList',
     component: RestaurantList
+  },
+  {
+    path: '/dish/:id',
+    name: 'DishDetails',
+    component: DishDetails
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile
+  },
+  {
+    path: '/user-management',
+    name: 'UserManagement',
+    component: UserManagement
   }
 ]
 

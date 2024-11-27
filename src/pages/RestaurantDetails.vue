@@ -9,7 +9,7 @@
         <el-col :span="16">
           <el-carousel height="500px" indicator-position="outside" :interval="4000" type="card">
             <el-carousel-item v-for="dish in restaurant.dishes" :key="dish.id">
-              <div class="carousel-item-wrapper">
+              <div class="carousel-item-wrapper" @click="navigateToDish(dish.id)">
                 <el-image 
                   :src="dish.image"
                   fit="cover"
@@ -75,38 +75,41 @@ onMounted(async () => {
         id: 1,
         name: '宫保鸡丁', 
         price: 25,
-        image: '/foods/food1.jpg'
+        image: '/foods/food1.jpg',
+        description: '经典川菜，鸡肉鲜嫩，花生香脆'
       },
       { 
         id: 2,
         name: '麻婆豆腐', 
         price: 20,
-        image: '/foods/food2.jpg'
+        image: '/foods/food2.jpg',
+        description: '正宗川味，麻辣鲜香'
       },
       { 
         id: 3,
         name: '鱼香肉丝', 
         price: 22,
-        image: '/foods/food3.jpg'
+        image: '/foods/food3.jpg',
+        description: '咸甜适中，开胃下饭'
       }
     ],
     comments: [
       {
         id: 1,
         content: '味道非常好，环境也不错！',
-        userAvatar: '/avatars/user1.jpg',
+        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
         createTime: '2024-03-20'
       },
       {
         id: 2,
         content: '服务员态度很好，下次还会再来。',
-        userAvatar: '/avatars/user2.jpg',
+        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
         createTime: '2024-03-21'
       },
       {
         id: 3,
         content: '菜品种类丰富，性价比高。',
-        userAvatar: '/avatars/user3.jpg',
+        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
         createTime: '2024-03-22'
       }
     ]
@@ -114,6 +117,10 @@ onMounted(async () => {
 })
 
 const goBack = () => router.back()
+
+const navigateToDish = (dishId) => {
+  router.push(`/dish/${dishId}`)
+}
 </script>
 
 <style scoped>
@@ -140,6 +147,7 @@ h2 {
   background: #fff;
   margin: 10px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .carousel-item-wrapper:hover {
@@ -164,7 +172,7 @@ h2 {
   left: 0;
   right: 0;
   padding: 30px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  background: linear-gradient(to top, rgba(29, 61, 50, 0.9), transparent);
   color: white;
   text-align: left;
 }
@@ -199,7 +207,7 @@ h2 {
   width: 30px;
   height: 3px;
   border-radius: 3px;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--secondary-color);
 }
 
 :deep(.el-carousel__indicator.is-active .el-carousel__button) {
@@ -214,6 +222,7 @@ h2 {
 
 .rating-card {
   height: 100%;
+  border: 1px solid rgba(42, 157, 143, 0.1);
 }
 
 .rating-header {
@@ -252,5 +261,9 @@ h2 {
     color: #999;
     font-size: 12px;
   }
+}
+
+:deep(.el-rate__icon) {
+  color: var(--secondary-color) !important;
 }
 </style> 
