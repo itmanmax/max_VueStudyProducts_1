@@ -94,7 +94,7 @@ const markdownContent = ref('')
 
 const fetchAnnouncement = async () => {
   try {
-    const response = await fetch('/src/data/clear.md')
+    const response = await fetch('/data/clear.md')
     const text = await response.text()
     markdownContent.value = marked(text)
   } catch (error) {
