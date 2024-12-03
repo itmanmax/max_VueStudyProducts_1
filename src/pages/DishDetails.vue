@@ -1,5 +1,5 @@
 <template>
-  <el-container>
+  <el-container v-if="dish">
     <el-header>
       <el-button @click="goBack" type="primary" icon="ArrowLeft">返回</el-button>
       <h2>{{ dish.name }}</h2>
@@ -13,7 +13,15 @@
               :src="dish.image"
               fit="cover"
               class="dish-main-image"
-            />
+              @error="handleImageError"
+            >
+              <template #error>
+                <div class="image-error">
+                  <el-icon><Picture /></el-icon>
+                  <span>图片加载失败</span>
+                </div>
+              </template>
+            </el-image>
             <div class="dish-price">¥{{ dish.price }}</div>
           </div>
           
@@ -31,33 +39,17 @@
                 <span>{{ dish.cookingTime }}分钟</span>
               </div>
               <div class="detail-item">
+                <span class="label">所属餐厅：</span>
+                <span>{{ dish.restaurantName }}</span>
+              </div>
+              <div class="detail-item">
                 <span class="label">辣度：</span>
                 <el-rate
                   v-model="dish.spicyLevel"
-                  disabled
-                  :colors="['#F56C6C', '#F56C6C', '#F56C6C']"
                   :max="3"
+                  disabled
+                  class="spicy-rate"
                 />
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        
-        <el-col :span="8">
-          <el-card class="comments-card">
-            <template #header>
-              <div class="comments-header">
-                <span>用户评价</span>
-                <el-rate v-model="dish.rating" disabled show-score />
-              </div>
-            </template>
-            <div class="comments-list">
-              <div v-for="comment in dish.comments" :key="comment.id" class="comment-item">
-                <el-avatar :size="32" :src="comment.userAvatar" :fallback="defaultAvatarUrl" />
-                <div class="comment-content">
-                  <p>{{ comment.content }}</p>
-                  <span class="comment-time">{{ comment.createTime }}</span>
-                </div>
               </div>
             </div>
           </el-card>
@@ -65,139 +57,62 @@
       </el-row>
     </el-main>
   </el-container>
+
+  <el-container v-else>
+    <el-main>
+      <el-empty description="加载中...">
+        <el-button type="primary" @click="goBack">返回</el-button>
+      </el-empty>
+    </el-main>
+  </el-container>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { ArrowLeft, Picture } from '@element-plus/icons-vue'
+import dishes from '../data/dishes.json'
 
 const route = useRoute()
 const router = useRouter()
-const defaultAvatarUrl = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+const dish = ref(null)
 
-const dish = ref({
-  name: '',
-  price: 0,
-  rating: 0,
-  description: '',
-  image: '',
-  cookingTime: 0,
-  spicyLevel: 0,
-  comments: []
-})
-
-onMounted(async () => {
-  const id = route.params.id
-  // 模拟不同菜品的数据
-  const dishesData = {
-    '1': {
-      id: 1,
-      name: '宫保鸡丁',
-      price: 25,
-      rating: 4.8,
-      description: '宫保鸡丁是一道闻名中外的川菜。鸡肉鲜嫩，花生香脆，配以干辣椒的麻辣味，口感层次丰富。',
-      image: '/foods/food1.jpg',
-      cookingTime: 20,
-      spicyLevel: 2,
-      comments: [
-        {
-          id: 1,
-          content: '非常好吃，辣度适中，花生很脆！',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-20'
-        },
-        {
-          id: 2,
-          content: '分量足，价格实惠，鸡肉很嫩',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-21'
-        }
-      ]
-    },
-    '2': {
-      id: 2,
-      name: '麻婆豆腐',
-      price: 20,
-      rating: 4.6,
-      description: '麻婆豆腐以嫩豆腐为主料，配以肉末，采用川味调料烹制，麻辣鲜香，入口即化。',
-      image: '/foods/food2.jpg',
-      cookingTime: 15,
-      spicyLevel: 3,
-      comments: [
-        {
-          id: 1,
-          content: '豆腐很嫩，味道正宗！就是有点太辣了',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-22'
-        },
-        {
-          id: 2,
-          content: '很地道的川菜味道，下饭神器',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-23'
-        }
-      ]
-    },
-    '3': {
-      id: 3,
-      name: '鱼香肉丝',
-      price: 22,
-      rating: 4.7,
-      description: '鱼香肉丝选用优质里脊肉，搭配胡萝卜、木耳等，以独特的鱼香调味料烹制，咸甜适中。',
-      image: '/foods/food3.jpg',
-      cookingTime: 18,
-      spicyLevel: 1,
-      comments: [
-        {
-          id: 1,
-          content: '酸甜可口，肉丝很嫩，配菜新鲜',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-21'
-        },
-        {
-          id: 2,
-          content: '调味恰到好处，不辣也很开胃',
-          userAvatar: defaultAvatarUrl,
-          createTime: '2024-03-22'
-        }
-      ]
+// 获取菜品详情
+onMounted(() => {
+  try {
+    const dishId = route.params.id
+    if (dishes[dishId]) {
+      dish.value = dishes[dishId]
+    } else {
+      ElMessage.error('未找到该菜品信息')
+      router.back()
     }
-  }
-
-  // 根据路由参数获取对应菜品数据
-  dish.value = dishesData[id] || {
-    id,
-    name: '未知菜品',
-    price: 0,
-    rating: 0,
-    description: '暂无描述',
-    image: '/foods/default.jpg',
-    cookingTime: 0,
-    spicyLevel: 0,
-    comments: []
+  } catch (error) {
+    console.error('加载菜品数据失败:', error)
+    ElMessage.error('加载菜品数据失败')
+    router.back()
   }
 })
 
-const goBack = () => router.back()
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
+
+// 图片加载失败处理
+const handleImageError = (e) => {
+  console.error('图片加载失败:', e)
+}
 </script>
 
 <style scoped>
 .el-header {
-  background-color: #fff;
-  padding: 20px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-h2 {
-  margin-left: 20px;
-  margin-bottom: 0;
-}
-
-.el-main {
-  background: var(--background-light);
+  gap: 20px;
   padding: 20px;
+  background: white;
 }
 
 .dish-image-container {
@@ -205,9 +120,7 @@ h2 {
   margin-bottom: 20px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .dish-main-image {
@@ -220,24 +133,16 @@ h2 {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  background: var(--gradient-primary);
-  color: #ffffff;
+  background: var(--secondary-color);
+  color: white;
   padding: 8px 16px;
   border-radius: 20px;
-  font-size: 20px;
+  font-size: 1.2em;
   font-weight: bold;
 }
 
 .dish-info {
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(42, 157, 143, 0.1);
-  transition: all 0.3s ease;
-}
-
-.dish-info:hover {
-  box-shadow: 0 8px 20px rgba(29, 61, 50, 0.1);
 }
 
 .dish-info-header {
@@ -247,40 +152,41 @@ h2 {
 }
 
 .dish-description {
-  font-size: 16px;
-  line-height: 1.6;
   color: #666;
-  margin-bottom: 20px;
+  line-height: 1.6;
+  margin: 15px 0;
 }
 
-.dish-details .detail-item {
-  margin-bottom: 12px;
+.dish-details {
+  margin-top: 20px;
+}
+
+.detail-item {
   display: flex;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .detail-item .label {
-  color: #999;
+  color: #666;
   margin-right: 10px;
-  width: 80px;
+  min-width: 80px;
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f5f7fa;
+  color: #909399;
 }
 
 .comments-card {
   height: 100%;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(42, 157, 143, 0.1);
-  transition: all 0.3s ease;
-}
-
-.comments-card:hover {
-  box-shadow: 0 8px 20px rgba(29, 61, 50, 0.1);
-}
-
-.comments-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .comments-list {

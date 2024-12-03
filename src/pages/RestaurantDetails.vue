@@ -1,5 +1,5 @@
 <template>
-  <el-container>
+  <el-container v-if="restaurant">
     <el-header>
       <el-button @click="goBack" type="primary" icon="ArrowLeft">返回</el-button>
       <h2>{{ restaurant.name }}</h2>
@@ -7,14 +7,34 @@
     <el-main>
       <el-row :gutter="20">
         <el-col :span="16">
-          <el-carousel height="500px" indicator-position="outside" :interval="4000" type="card">
+          <div class="section-title">
+            <h3>本店菜谱</h3>
+            <span class="subtitle">精选特色菜品</span>
+          </div>
+
+          <el-carousel 
+            height="500px" 
+            indicator-position="outside" 
+            :interval="1000"
+            arrow="always"
+            type="card"
+            :touch-move-prevent="false"
+          >
             <el-carousel-item v-for="dish in restaurant.dishes" :key="dish.id">
               <div class="carousel-item-wrapper" @click="navigateToDish(dish.id)">
                 <el-image 
                   :src="dish.image"
                   fit="cover"
                   class="carousel-image"
-                />
+                  @error="handleImageError"
+                >
+                  <template #error>
+                    <div class="image-error">
+                      <el-icon><Picture /></el-icon>
+                      <span>图片加载失败</span>
+                    </div>
+                  </template>
+                </el-image>
                 <div class="carousel-caption">
                   <h3>{{ dish.name }}</h3>
                   <p class="price">¥{{ dish.price }}</p>
@@ -23,6 +43,47 @@
               </div>
             </el-carousel-item>
           </el-carousel>
+
+          <div class="restaurant-details">
+            <el-card class="info-card">
+              <template #header>
+                <div class="card-header">
+                  <h3>餐厅信息</h3>
+                </div>
+              </template>
+              <div class="info-content">
+                <div class="info-item">
+                  <el-icon><Location /></el-icon>
+                  <span>地址：{{ restaurant.address }}</span>
+                </div>
+                <div class="info-item">
+                  <el-icon><Phone /></el-icon>
+                  <span>电话：{{ restaurant.phone }}</span>
+                </div>
+                <div class="info-item">
+                  <el-icon><Clock /></el-icon>
+                  <span>营业时间：{{ restaurant.businessHours }}</span>
+                </div>
+              </div>
+            </el-card>
+
+            <el-card class="features-card">
+              <template #header>
+                <div class="card-header">
+                  <h3>餐厅特色</h3>
+                </div>
+              </template>
+              <div class="features-content">
+                <div class="feature-tags">
+                  <el-tag>无烟环境</el-tag>
+                  <el-tag>免费WiFi</el-tag>
+                  <el-tag>停车方便</el-tag>
+                  <el-tag>提供包间</el-tag>
+                </div>
+                <p class="restaurant-desc">{{ restaurant.description }}</p>
+              </div>
+            </el-card>
+          </div>
         </el-col>
         
         <el-col :span="8">
@@ -35,8 +96,19 @@
             </template>
             <div class="comments-list">
               <div v-for="comment in restaurant.comments" :key="comment.id" class="comment-item">
-                <el-avatar :size="32" :src="comment.userAvatar" />
+                <el-avatar 
+                  :size="32" 
+                  :src="comment.user?.avatar || defaultAvatar"
+                >
+                  <template #error>
+                    <img :src="defaultAvatar" alt="default avatar">
+                  </template>
+                </el-avatar>
                 <div class="comment-content">
+                  <div class="comment-header">
+                    <span class="username">{{ comment.user?.name || '匿名用户' }}</span>
+                    <el-rate v-model="comment.rating" disabled show-score />
+                  </div>
                   <p>{{ comment.content }}</p>
                   <span class="comment-time">{{ comment.createTime }}</span>
                 </div>
@@ -47,72 +119,42 @@
       </el-row>
     </el-main>
   </el-container>
+  
+  <el-container v-else>
+    <el-main>
+      <el-empty description="加载中...">
+        <el-button type="primary" @click="goBack">返回</el-button>
+      </el-empty>
+    </el-main>
+  </el-container>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { formatDate } from '../utils/date'
+import { ElMessage } from 'element-plus'
+import restaurants from '../data/restaurants.json'
+import restaurantDetails from '../data/restaurantDetails.json'
+import dishes from '../data/dishes.json'
+import { Location, Phone, Clock } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
-const restaurant = ref({
-  name: '',
-  rating: 0,
-  dishes: [],
-  comments: []
-})
+const restaurant = ref(null)
 
-onMounted(async () => {
-  const id = route.params.id
-  // 模拟API调用
-  restaurant.value = {
-    id,
-    name: '美味轩',
-    rating: 4.5,
-    dishes: [
-      { 
-        id: 1,
-        name: '宫保鸡丁', 
-        price: 25,
-        image: '/foods/food1.jpg',
-        description: '经典川菜，鸡肉鲜嫩，花生香脆'
-      },
-      { 
-        id: 2,
-        name: '麻婆豆腐', 
-        price: 20,
-        image: '/foods/food2.jpg',
-        description: '正宗川味，麻辣鲜香'
-      },
-      { 
-        id: 3,
-        name: '鱼香肉丝', 
-        price: 22,
-        image: '/foods/food3.jpg',
-        description: '咸甜适中，开胃下饭'
-      }
-    ],
-    comments: [
-      {
-        id: 1,
-        content: '味道非常好，环境也不错！',
-        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-        createTime: '2024-03-20'
-      },
-      {
-        id: 2,
-        content: '服务员态度很好，下次还会再来。',
-        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-        createTime: '2024-03-21'
-      },
-      {
-        id: 3,
-        content: '菜品种类丰富，性价比高。',
-        userAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-        createTime: '2024-03-22'
-      }
-    ]
+const defaultAvatar = '/Users/default-avatar.jpg'
+
+onMounted(() => {
+  const restaurantId = parseInt(route.params.id)
+  const details = restaurantDetails[restaurantId]
+  if (details) {
+    restaurant.value = {
+      ...details,
+      dishes: details.dishes.map(dishId => dishes[dishId])
+    }
+  } else {
+    ElMessage.error('未找到该餐厅信息')
+    router.back()
   }
 })
 
@@ -120,6 +162,10 @@ const goBack = () => router.back()
 
 const navigateToDish = (dishId) => {
   router.push(`/dish/${dishId}`)
+}
+
+const handleImageError = (e) => {
+  console.error('图片加载失败:', e)
 }
 </script>
 
@@ -205,13 +251,15 @@ h2 {
 
 :deep(.el-carousel__button) {
   width: 30px;
-  height: 3px;
+  height: 6px;
   border-radius: 3px;
-  background-color: var(--secondary-color);
+  background-color: rgba(29, 61, 50, 0.3);
+  transition: all 0.3s ease;
 }
 
 :deep(.el-carousel__indicator.is-active .el-carousel__button) {
-  background-color: #f8c037;
+  background-color: var(--secondary-color);
+  width: 50px;
 }
 
 :deep(.el-carousel__item) {
@@ -242,28 +290,151 @@ h2 {
   margin-bottom: 16px;
   padding-bottom: 16px;
   border-bottom: 1px solid #eee;
-
-  &:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-  }
 }
 
 .comment-content {
   flex: 1;
-  
-  p {
-    margin: 0 0 8px;
-  }
-  
-  .comment-time {
-    color: #999;
-    font-size: 12px;
-  }
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.comment-time {
+  color: #999;
+  font-size: 12px;
+  display: block;
+  margin-top: 8px;
 }
 
 :deep(.el-rate__icon) {
   color: var(--secondary-color) !important;
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 14px;
+}
+
+.image-error .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+:deep(.el-carousel__arrow) {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(29, 61, 50, 0.8);
+  border: 2px solid #fff;
+  
+  &:hover {
+    background-color: var(--secondary-color);
+  }
+
+  i {
+    font-size: 24px;
+  }
+}
+
+:deep(.el-carousel__arrow--left) {
+  left: 20px;
+}
+
+:deep(.el-carousel__arrow--right) {
+  right: 20px;
+}
+
+.section-title {
+  margin-bottom: 20px;
+  padding: 0 10px;
+
+  h3 {
+    font-size: 24px;
+    color: var(--el-text-color-primary);
+    margin: 0 0 8px 0;
+  }
+
+  .subtitle {
+    color: var(--el-text-color-secondary);
+    font-size: 14px;
+  }
+}
+
+.restaurant-details {
+  margin-top: 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.info-card, .features-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.card-header {
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--el-text-color-primary);
+  }
+}
+
+.info-content {
+  .info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    color: var(--el-text-color-regular);
+
+    .el-icon {
+      margin-right: 10px;
+      color: var(--secondary-color);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.features-content {
+  .feature-tags {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .el-tag {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      color: white;
+    }
+  }
+
+  .restaurant-desc {
+    color: var(--el-text-color-regular);
+    line-height: 1.6;
+    margin: 0;
+  }
 }
 </style> 

@@ -1,73 +1,123 @@
 <template>
-  <el-aside width="240px" class="aside-container">
+  <div class="side-nav">
     <div class="logo-container">
-      <img alt="Logo" class="logo" src="/logo.svg" />
-      <div class="brand-name">惊喜一餐</div>
+      <img src="/logo.svg" alt="Logo" class="logo">
+      <h1 class="app-title">惊喜一餐</h1>
     </div>
+
     <el-menu
-      :default-active="activeMenu"
-      class="el-menu-vertical"
-      @select="handleSelect"
-      background-color="transparent"
-      text-color="#666"
-      active-text-color="#d4af37"
+      class="nav-menu"
+      :collapse="isCollapse"
+      :default-active="activeIndex"
+      router
     >
-      <el-menu-item index="Home" class="menu-item">
+      <el-menu-item index="/" class="menu-item">
         <el-icon><HomeFilled /></el-icon>
         <span>探索殿堂</span>
       </el-menu-item>
-      <el-menu-item index="Restaurant" class="menu-item">
+      <el-menu-item index="/restaurants" class="menu-item">
         <el-icon><Shop /></el-icon>
         <span>米其林餐厅</span>
       </el-menu-item>
-      <el-sub-menu index="UserManagement" class="menu-item">
+      <el-sub-menu index="/user" class="menu-item">
         <template #title>
           <el-icon><User /></el-icon>
           <span>用户中心</span>
         </template>
-        <el-menu-item index="UserProfile" class="sub-menu-item">
+        <el-menu-item index="/profile" class="sub-menu-item">
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
         </el-menu-item>
-        <el-menu-item index="UserManagement" class="sub-menu-item">
+        <el-menu-item index="/user-management" class="sub-menu-item">
           <el-icon><Setting /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
       </el-sub-menu>
     </el-menu>
-  </el-aside>
+
+    <div class="announcement-btn">
+      <el-button 
+        link
+        class="announcement-trigger"
+        @click="showAnnouncement"
+      >
+        <el-icon><Bell /></el-icon>
+        <span>公告</span>
+      </el-button>
+    </div>
+
+    <el-drawer
+      v-model="drawerVisible"
+      title="系统公告"
+      direction="ttb"
+      size="80%"
+      :with-header="true"
+    >
+      <template #header>
+        <div class="drawer-header">
+          <span class="drawer-title">系统公告</span>
+          <el-button
+            class="close-btn"
+            type="danger"
+            circle
+            @click="drawerVisible = false"
+          >
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
+      </template>
+      <div class="markdown-content" v-html="markdownContent"></div>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
   HomeFilled, 
   Shop, 
   UserFilled, 
   User,
-  Setting 
+  Setting,
+  Bell,
+  Close 
 } from '@element-plus/icons-vue'
+import { marked } from 'marked'
 
 const route = useRoute()
 const router = useRouter()
-const activeMenu = ref('Home')
+const isCollapse = ref(false)
+const activeIndex = ref('/')
+const drawerVisible = ref(false)
+const markdownContent = ref('')
 
-// 更新激活的菜单项
-const updateActiveMenu = () => {
-  if (route.name === 'Home') {
-    activeMenu.value = 'Home'
-  } else if (route.name === 'RestaurantDetails' || route.name === 'RestaurantList') {
-    activeMenu.value = 'Restaurant'
-  } else if (route.name === 'UserProfile') {
-    activeMenu.value = 'UserProfile'
-  } else if (route.name === 'UserManagement') {
-    activeMenu.value = 'UserManagement'
+const fetchAnnouncement = async () => {
+  try {
+    const response = await fetch('/src/data/clear.md')
+    const text = await response.text()
+    markdownContent.value = marked(text)
+  } catch (error) {
+    console.error('加载公告失败:', error)
   }
 }
 
+const showAnnouncement = () => {
+  drawerVisible.value = true
+}
+
+onMounted(() => {
+  fetchAnnouncement()
+})
+
+// 更新激活的菜单项
+const updateActiveMenu = () => {
+  const path = route.path
+  activeIndex.value = path
+}
+
 watch(
-  () => route.name,
+  () => route.path,
   () => {
     updateActiveMenu()
   },
@@ -76,104 +126,263 @@ watch(
 
 // 处理菜单选择
 const handleSelect = (key) => {
-  if (key === 'Home') {
-    router.push({ name: 'Home' })
-  } else if (key === 'Restaurant') {
-    router.push({ name: 'RestaurantList' })
-  } else if (key === 'UserProfile') {
-    router.push({ name: 'UserProfile' })
-  } else if (key === 'UserManagement') {
-    router.push({ name: 'UserManagement' })
-  }
+  router.push(key)
 }
 </script>
 
 <style scoped>
-.logo-container {
-  padding: 30px 20px;
-  text-align: center;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+.side-nav {
+  height: 100%;
+  background: linear-gradient(180deg, #2A9D8F 0%, #264653 100%);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.brand-name {
-  margin-top: 15px;
-  font-size: 1.4rem;
-  color: #ffffff;
-  letter-spacing: 3px;
-  font-weight: 300;
-}
-
-.logo {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-}
-
-.el-menu-vertical {
-  background: transparent !important;
-  border: none;
-  padding: 20px 0;
+.nav-menu {
+  border-right: none;
+  background: transparent;
+  flex: 1;
 }
 
 .menu-item {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   margin: 8px 16px;
   border-radius: 8px;
   height: 50px;
   line-height: 50px;
   border: none !important;
+  backdrop-filter: blur(4px);
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
 }
 
 .menu-item.is-active {
-  background: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
-}
-
-.aside-container {
-  flex-shrink: 0;
-  background: var(--gradient-primary);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  height: 100vh;
-  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .sub-menu-item {
   padding-left: 54px !important;
 }
 
-:deep(.el-sub-menu .el-menu-item) {
-  min-width: auto;
-  margin: 4px 16px;
-}
-
-:deep(.el-sub-menu__title) {
-  margin: 8px 16px;
-  border-radius: 8px;
-}
-
-:deep(.el-sub-menu__title:hover) {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-
 :deep(.el-menu) {
+  background: transparent !important;
   border: none;
 }
 
-:deep(.el-menu-item), :deep(.el-sub-menu__title) {
-  color: rgba(255, 255, 255, 0.9) !important;
+:deep(.el-sub-menu) {
+  background: transparent !important;
+  
+  &.menu-item {
+    margin: 0;
+    background: transparent !important;
+  }
 }
 
-:deep(.el-menu-item.is-active) {
-  background: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
+:deep(.el-sub-menu__title) {
+  margin: 8px 16px !important;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(4px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px);
+  }
+}
+
+:deep(.el-sub-menu.is-opened) {
+  background: transparent !important;
+  
+  .el-sub-menu__title {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+}
+
+:deep(.el-sub-menu__content) {
+  background: transparent !important;
+  padding: 4px 0;
+}
+
+:deep(.el-sub-menu .el-menu-item) {
+  min-width: auto;
+  margin: 4px 16px;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px;
+  height: 40px;
+  line-height: 40px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-1px);
+  }
+
+  &.is-active {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+:deep(.el-menu-item), 
+:deep(.el-sub-menu__title) {
+  color: rgba(255, 255, 255, 0.95) !important;
+  transition: all 0.3s ease;
 }
 
 :deep(.el-menu-item:hover), :deep(.el-sub-menu__title:hover) {
   background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.logo-container {
+  padding: 30px 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.app-title {
+  color: #ffffff;
+  font-size: 1.4em;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-icon) {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.announcement-btn {
+  padding: 16px;
+  margin-top: auto;
+}
+
+.announcement-trigger {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff !important;
+  transition: all 0.3s ease;
+  padding: 0 16px;
+}
+
+.announcement-trigger:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+.announcement-trigger :deep(.el-icon) {
+  margin-right: 0;
+}
+
+.markdown-content {
+  padding: 20px;
+  line-height: 1.6;
+  color: var(--el-text-color-primary);
+  font-size: 16px;
+}
+
+.markdown-content :deep(h1) {
+  font-size: 2em;
+  margin-bottom: 1em;
+  color: var(--secondary-color);
+}
+
+.markdown-content :deep(h2) {
+  font-size: 1.5em;
+  margin: 1em 0;
+  color: var(--secondary-color);
+}
+
+.markdown-content :deep(p) {
+  margin: 1em 0;
+}
+
+.markdown-content :deep(ul) {
+  padding-left: 2em;
+  margin: 1em 0;
+}
+
+.markdown-content :deep(li) {
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(code) {
+  background: #f5f7fa;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.markdown-content :deep(pre) {
+  background: #f5f7fa;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+:deep(.el-drawer__header) {
+  margin-bottom: 0;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+:deep(.el-drawer__header > :first-child) {
+  margin: 0;
+}
+
+:deep(.el-drawer__close-btn) {
+  display: none;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.drawer-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.close-btn {
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  transform: rotate(90deg);
 }
 </style> 

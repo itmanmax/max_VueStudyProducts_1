@@ -2,15 +2,26 @@
   <el-container>
     <el-header>
       <h2>个人中心</h2>
+      <div class="auth-buttons">
+        <template v-if="isLoggedIn">
+          <span class="welcome-text">欢迎, {{ userInfo.nickname }}</span>
+          <el-button type="danger" @click="handleLogout">退出登录</el-button>
+        </template>
+        <el-button v-else type="primary" @click="showLoginDialog">登录</el-button>
+      </div>
     </el-header>
     
-    <el-main>
+    <el-main v-if="isLoggedIn">
       <el-row :gutter="20">
         <!-- 左侧个人信息卡片 -->
         <el-col :span="8">
           <el-card class="user-info-card">
             <div class="user-header">
-              <el-avatar :size="100" :src="userInfo.avatar" :fallback="defaultAvatarUrl" />
+              <el-avatar 
+                :size="100" 
+                :src="userInfo.avatar" 
+                @error="() => userInfo.avatar = defaultAvatar"
+              />
               <h3>{{ userInfo.nickname }}</h3>
               <p class="user-id">ID: {{ userInfo.id }}</p>
             </div>
@@ -43,7 +54,7 @@
             <template #header>
               <div class="card-header">
                 <span>我的收藏</span>
-                <el-button type="text">查看全部</el-button>
+                <el-button link>查看全部</el-button>
               </div>
             </template>
             
@@ -68,7 +79,7 @@
             <template #header>
               <div class="card-header">
                 <span>历史记录</span>
-                <el-button type="text">查看全部</el-button>
+                <el-button link>查看全部</el-button>
               </div>
             </template>
 
@@ -86,45 +97,139 @@
         </el-col>
       </el-row>
     </el-main>
+    
+    <el-main v-else>
+      <el-empty description="请登录后查看个人信息">
+        <el-button type="primary" @click="showLoginDialog">
+          立即登录
+        </el-button>
+      </el-empty>
+    </el-main>
+
+    <!-- 登录对话框 -->
+    <el-dialog
+      title="用户登录"
+      v-model="loginDialogVisible"
+      width="400px"
+      center
+    >
+      <el-form
+        ref="loginForm"
+        :model="loginForm"
+        :rules="loginRules"
+        label-width="80px"
+      >
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="loginForm.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="loginDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleLogin" :loading="loginLoading">
+            登录
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑资料对话框 -->
+    <el-dialog
+      title="编辑个人资料"
+      v-model="dialogVisible"
+      width="500px"
+      center
+    >
+      <el-form :model="editForm" label-width="100px">
+        <el-form-item label="头像">
+          <el-upload
+            class="avatar-uploader"
+            action="#"
+            :show-file-list="false"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img v-if="editForm.avatar" :src="editForm.avatar" class="avatar-preview">
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="昵称">
+          <el-input v-model="editForm.nickname" />
+        </el-form-item>
+        <el-form-item label="个性签名">
+          <el-input
+            type="textarea"
+            v-model="editForm.signature"
+            :rows="3"
+            placeholder="写点什么介绍自己吧..."
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSaveProfile">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
+import restaurantDetails from '../data/restaurantDetails.json'
 
 const router = useRouter()
-const defaultAvatarUrl = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+const defaultAvatar = '/Users/Users1.jpg'  // 使用默认用户头像
+const dialogVisible = ref(false)
 
 // 用户基本信息
 const userInfo = ref({
   id: '10086',
   nickname: '美食达人',
-  avatar: defaultAvatarUrl,
+  avatar: defaultAvatar,
   favoriteCount: 12,
   commentCount: 45,
-  likeCount: 128
+  likeCount: 128,
+  signature: '美食爱好者，热爱分享美食体验'
 })
 
-// 收藏的餐厅
+// 编辑表单数据
+const editForm = ref({
+  nickname: '',
+  avatar: '',
+  signature: ''
+})
+
+// 收藏的餐厅 - 从 restaurantDetails 中获取数据
 const favoriteRestaurants = ref([
   {
     id: 1,
-    name: '美味轩',
-    image: '/restaurants/rest1.jpg',
-    rating: 4.5
+    name: restaurantDetails['1'].name,
+    image: restaurantDetails['1'].image,
+    rating: restaurantDetails['1'].rating
   },
   {
     id: 2,
-    name: '江南小馆',
-    image: '/restaurants/rest2.jpg',
-    rating: 4.3
+    name: restaurantDetails['2'].name,
+    image: restaurantDetails['2'].image,
+    rating: restaurantDetails['2'].rating
   },
   {
     id: 3,
-    name: '川香园',
-    image: '/restaurants/rest3.jpg',
-    rating: 4.7
+    name: restaurantDetails['3'].name,
+    image: restaurantDetails['3'].image,
+    rating: restaurantDetails['3'].rating
   }
 ])
 
@@ -150,14 +255,117 @@ const userActivities = ref([
   }
 ])
 
-// 方法
-const editProfile = () => {
-  // TODO: 实现编辑资料功能
-  console.log('编辑资料')
+// 登录相关的状态
+const isLoggedIn = ref(false)
+const loginDialogVisible = ref(false)
+const loginLoading = ref(false)
+const loginForm = ref({
+  username: '',
+  password: ''
+})
+
+// 表单验证规则
+const loginRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+  ]
 }
 
+// 显示编辑对话框
+const editProfile = () => {
+  editForm.value = {
+    nickname: userInfo.value.nickname,
+    avatar: userInfo.value.avatar,
+    signature: userInfo.value.signature
+  }
+  dialogVisible.value = true
+}
+
+// 处理头像上传
+const beforeAvatarUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('上传头像图片只能是图片格式!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!')
+    return false
+  }
+
+  // 创建本地预览URL
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = (e) => {
+    editForm.value.avatar = e.target.result
+  }
+  return false // 阻止自动上传
+}
+
+// 保存个人资料
+const handleSaveProfile = () => {
+  userInfo.value = {
+    ...userInfo.value,
+    nickname: editForm.value.nickname,
+    avatar: editForm.value.avatar || defaultAvatar,
+    signature: editForm.value.signature
+  }
+  dialogVisible.value = false
+  ElMessage.success('个人资料更新成功')
+}
+
+// 方法
 const navigateToRestaurant = (restaurantId) => {
   router.push(`/restaurant/${restaurantId}`)
+}
+
+// 显示登录对话框
+const showLoginDialog = () => {
+  loginDialogVisible.value = true
+}
+
+// 处理登录
+const handleLogin = () => {
+  loginLoading.value = true
+  // 模拟登录请求
+  setTimeout(() => {
+    isLoggedIn.value = true
+    loginLoading.value = false
+    loginDialogVisible.value = false
+    ElMessage.success('登录成功！')
+    
+    // 重置表单
+    loginForm.value = {
+      username: '',
+      password: ''
+    }
+  }, 1000)
+}
+
+// 处理登出
+const handleLogout = () => {
+  ElMessageBox.confirm(
+    '确定要退出登录吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    isLoggedIn.value = false
+    ElMessage.success('已退出登录')
+  }).catch(() => {
+    // 添加取消处理
+    ElMessage.info('已取消退出')
+  })
 }
 </script>
 
@@ -166,6 +374,9 @@ const navigateToRestaurant = (restaurantId) => {
   background-color: #fff;
   padding: 20px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .el-main {
@@ -246,11 +457,24 @@ const navigateToRestaurant = (restaurantId) => {
 }
 
 .favorite-restaurants {
+  .el-row {
+    margin: 0;
+  }
+
+  .el-col {
+    padding: 10px;
+  }
+
   .restaurant-item {
     cursor: pointer;
-    padding: 10px;
+    padding: 15px;
     border-radius: 8px;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
       transform: translateY(-5px);
@@ -259,14 +483,17 @@ const navigateToRestaurant = (restaurantId) => {
 
     .el-image {
       width: 100%;
-      height: 120px;
+      height: 160px;
       border-radius: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      object-fit: cover;
     }
 
     h4 {
       margin: 10px 0;
       font-size: 1.1em;
+      color: var(--el-text-color-primary);
+      flex-grow: 1;
     }
 
     .restaurant-rating {
@@ -275,8 +502,18 @@ const navigateToRestaurant = (restaurantId) => {
       justify-content: space-between;
       font-size: 0.9em;
       color: #666;
+      margin-top: auto;
     }
   }
+}
+
+.content-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 :deep(.el-timeline-item__content) {
@@ -294,5 +531,97 @@ const navigateToRestaurant = (restaurantId) => {
 
 :deep(.el-timeline-item__node) {
   background-color: var(--secondary-color);
+}
+
+:deep(.el-button--link) {
+  color: var(--secondary-color);
+  font-size: 0.9em;
+  padding: 0;
+
+  &:hover {
+    color: var(--primary-color);
+  }
+}
+
+.avatar-uploader {
+  text-align: center;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration);
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-uploader:hover {
+  border-color: var(--el-color-primary);
+}
+
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+}
+
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.user-signature {
+  color: #666;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcome-text {
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 30px 40px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 登录表单样式 */
+:deep(.el-form-item__label) {
+  font-weight: 500;
+}
+
+:deep(.el-input__wrapper) {
+  box-shadow: none;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--el-color-primary);
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 1px var(--el-color-primary-light-2);
 }
 </style> 

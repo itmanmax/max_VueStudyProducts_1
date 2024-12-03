@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "川味小馆", "rating": 4.5 },
+  { "id": 2, "name": "粤式茶餐厅", "rating": 4.6 },
+  { "id": 3, "name": "江浙本帮", "rating": 4.7 },
+  { "id": 4, "name": "湘菜馆", "rating": 4.8 },
+  { "id": 5, "name": "东北菜馆", "rating": 4.5 },
+  { "id": 6, "name": "西北风味", "rating": 4.6 },
+  { "id": 7, "name": "新疆风味", "rating": 4.7 },
+  { "id": 8, "name": "云南风味", "rating": 4.8 },
+  { "id": 9, "name": "贵州风味", "rating": 4.5 },
+  { "id": 10, "name": "台湾风味", "rating": 4.6 }
+]

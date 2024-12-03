@@ -1,0 +1,462 @@
+{
+  "1": {
+    "id": 1,
+    "name": "川味小馆",
+    "rating": 4.5,
+    "description": "正宗川菜，麻辣鲜香，让您体验地道的四川味道",
+    "address": "幸福路88号",
+    "phone": "028-12345678",
+    "businessHours": "10:00-22:00",
+    "dishes": [1, 2, 3, 4, 5],
+    "image": "/Restaurant/Restaurant1.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "味道非常好，环境也不错",
+        "rating": 4.5,
+        "createTime": "2024-03-20",
+        "user": {
+          "id": "user1",
+          "name": "川菜爱好者",
+          "avatar": "/Users/Users1.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "麻辣味道很正宗，服务也很周到",
+        "rating": 4.6,
+        "createTime": "2024-03-21",
+        "user": {
+          "id": "user2",
+          "name": "辣味达人",
+          "avatar": "/Users/Users2.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "菜品丰富，价格合理",
+        "rating": 4.4,
+        "createTime": "2024-03-22",
+        "user": {
+          "id": "user3",
+          "name": "美食评论家",
+          "avatar": "/Users/Users3.jpg"
+        }
+      }
+    ]
+  },
+  "2": {
+    "id": 2,
+    "name": "粤式茶餐厅",
+    "rating": 4.6,
+    "description": "地道港式茶餐厅，正宗粤式点心，让您品尝到广东美食的精髓",
+    "address": "康乐路66号",
+    "phone": "020-87654321",
+    "businessHours": "07:00-22:00",
+    "dishes": [6, 7, 8, 9, 10],
+    "image": "/Restaurant/Restaurant2.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "点心很好吃，服务态度也很好",
+        "rating": 4.6,
+        "createTime": "2024-03-21",
+        "user": {
+          "id": "user4",
+          "name": "茶餐厅达人",
+          "avatar": "/Users/Users4.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "环境优雅，适合聚会",
+        "rating": 4.7,
+        "createTime": "2024-03-22",
+        "user": {
+          "id": "user5",
+          "name": "聚会爱好者",
+          "avatar": "/Users/Users5.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "价格稍贵，但物有所值",
+        "rating": 4.5,
+        "createTime": "2024-03-23",
+        "user": {
+          "id": "user6",
+          "name": "美食探险家",
+          "avatar": "/Users/Users6.jpg"
+        }
+      }
+    ]
+  },
+  "3": {
+    "id": 3,
+    "name": "江浙本帮",
+    "rating": 4.7,
+    "description": "正宗江浙菜系，精选本地食材，传承地道本帮味道",
+    "address": "江南路99号",
+    "phone": "0571-98765432",
+    "businessHours": "10:30-21:30",
+    "dishes": [11, 12, 13, 14, 15],
+    "image": "/Restaurant/Restaurant3.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "本帮菜做得很地道，价格实惠",
+        "rating": 4.7,
+        "createTime": "2024-03-22",
+        "user": {
+          "id": "user7",
+          "name": "江浙美食家",
+          "avatar": "/Users/Users7.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "食材新鲜，口感极佳",
+        "rating": 4.8,
+        "createTime": "2024-03-23",
+        "user": {
+          "id": "user8",
+          "name": "新鲜食材爱好者",
+          "avatar": "/Users/Users8.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "服务态度很好，值得推荐",
+        "rating": 4.6,
+        "createTime": "2024-03-24",
+        "user": {
+          "id": "user9",
+          "name": "服务体验者",
+          "avatar": "/Users/Users9.jpg"
+        }
+      }
+    ]
+  },
+  "4": {
+    "id": 4,
+    "name": "湘菜馆",
+    "rating": 4.8,
+    "description": "正宗湖南风味，香辣可口，让您体验湘菜的独特魅力",
+    "address": "湘江路123号",
+    "phone": "0731-34567890",
+    "businessHours": "11:00-22:00",
+    "dishes": [16, 17, 18, 19, 20],
+    "image": "/Restaurant/Restaurant4.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "辣度正好，很合湖南人的口味",
+        "rating": 4.8,
+        "createTime": "2024-03-23",
+        "user": {
+          "id": "user10",
+          "name": "湘菜爱好者",
+          "avatar": "/Users/Users10.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "菜品丰富，服务周到",
+        "rating": 4.9,
+        "createTime": "2024-03-24",
+        "user": {
+          "id": "user11",
+          "name": "美食享受者",
+          "avatar": "/Users/Users11.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "环境舒适，适合家庭聚餐",
+        "rating": 4.7,
+        "createTime": "2024-03-25",
+        "user": {
+          "id": "user12",
+          "name": "家庭聚餐达人",
+          "avatar": "/Users/Users12.jpg"
+        }
+      }
+    ]
+  },
+  "5": {
+    "id": 5,
+    "name": "东北菜馆",
+    "rating": 4.5,
+    "description": "东北大锅菜，分量足，味道正，带您体验东北的豪爽味道",
+    "address": "长春路56号",
+    "phone": "0431-23456789",
+    "businessHours": "10:00-21:00",
+    "dishes": [21, 22, 23, 24, 25],
+    "image": "/Restaurant/Restaurant5.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "分量很足，东北味道很正",
+        "rating": 4.5,
+        "createTime": "2024-03-24",
+        "user": {
+          "id": "user13",
+          "name": "东北菜爱好者",
+          "avatar": "/Users/Users13.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "大锅菜很有特色，值得一试",
+        "rating": 4.6,
+        "createTime": "2024-03-25",
+        "user": {
+          "id": "user14",
+          "name": "特色菜品尝者",
+          "avatar": "/Users/Users14.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "服务态度一般，但菜品不错",
+        "rating": 4.4,
+        "createTime": "2024-03-26",
+        "user": {
+          "id": "user15",
+          "name": "服务体验者",
+          "avatar": "/Users/Users15.jpg"
+        }
+      }
+    ]
+  },
+  "6": {
+    "id": 6,
+    "name": "西北风味",
+    "rating": 4.6,
+    "description": "兰州拉面，新疆大盘鸡，让您品尝西北的独特风味",
+    "address": "丝路大道88号",
+    "phone": "0931-45678901",
+    "businessHours": "09:30-21:30",
+    "dishes": [26, 27, 28, 29, 30],
+    "image": "/Restaurant/Restaurant6.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "拉面很好吃，汤很浓郁",
+        "rating": 4.6,
+        "createTime": "2024-03-25",
+        "user": {
+          "id": "user16",
+          "name": "拉面爱好者",
+          "avatar": "/Users/Users16.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "大盘鸡分量足，味道好",
+        "rating": 4.7,
+        "createTime": "2024-03-26",
+        "user": {
+          "id": "user17",
+          "name": "大盘鸡粉丝",
+          "avatar": "/Users/Users17.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "环境一般，但食物很棒",
+        "rating": 4.5,
+        "createTime": "2024-03-27",
+        "user": {
+          "id": "user18",
+          "name": "环境观察者",
+          "avatar": "/Users/Users18.jpg"
+        }
+      }
+    ]
+  },
+  "7": {
+    "id": 7,
+    "name": "新疆风味",
+    "rating": 4.7,
+    "description": "地道新疆美食，烤肉串，大盘鸡，让您体验异域风情",
+    "address": "天山路168号",
+    "phone": "0991-56789012",
+    "businessHours": "11:00-23:00",
+    "dishes": [31, 32, 33, 34, 35],
+    "image": "/Restaurant/Restaurant7.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "烤肉很香，分量足",
+        "rating": 4.7,
+        "createTime": "2024-03-26",
+        "user": {
+          "id": "user19",
+          "name": "烤肉爱好者",
+          "avatar": "/Users/Users19.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "大盘鸡味道不错，值得推荐",
+        "rating": 4.8,
+        "createTime": "2024-03-27",
+        "user": {
+          "id": "user20",
+          "name": "美食推荐者",
+          "avatar": "/Users/Users20.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "服务态度很好，环境也不错",
+        "rating": 4.6,
+        "createTime": "2024-03-28",
+        "user": {
+          "id": "user21",
+          "name": "服务体验者",
+          "avatar": "/Users/Users21.jpg"
+        }
+      }
+    ]
+  },
+  "8": {
+    "id": 8,
+    "name": "云南风味",
+    "rating": 4.8,
+    "description": "云南特色美食，过桥米线，汽锅鸡，带您领略云南味道",
+    "address": "滇池路235号",
+    "phone": "0871-67890123",
+    "businessHours": "09:00-21:00",
+    "dishes": [36, 37, 38, 39, 40],
+    "image": "/Restaurant/Restaurant8.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "米线很正宗，配料很新鲜",
+        "rating": 4.8,
+        "createTime": "2024-03-27",
+        "user": {
+          "id": "user22",
+          "name": "米线爱好者",
+          "avatar": "/Users/Users22.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "汽锅鸡味道鲜美，值得一试",
+        "rating": 4.9,
+        "createTime": "2024-03-28",
+        "user": {
+          "id": "user23",
+          "name": "美食探险家",
+          "avatar": "/Users/Users23.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "环境优雅，服务周到",
+        "rating": 4.7,
+        "createTime": "2024-03-29",
+        "user": {
+          "id": "user24",
+          "name": "环境观察者",
+          "avatar": "/Users/Users24.jpg"
+        }
+      }
+    ]
+  },
+  "9": {
+    "id": 9,
+    "name": "贵州风味",
+    "rating": 4.5,
+    "description": "贵州特色菜，酸汤鱼，肠旺面，让您品尝贵州的独特口味",
+    "address": "黔灵山路78号",
+    "phone": "0851-78901234",
+    "businessHours": "10:30-21:30",
+    "dishes": [41, 42, 43, 44, 45],
+    "image": "/Restaurant/Restaurant9.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "酸汤鱼很地道，服务很好",
+        "rating": 4.5,
+        "createTime": "2024-03-28",
+        "user": {
+          "id": "user25",
+          "name": "酸汤鱼爱好者",
+          "avatar": "/Users/Users25.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "肠旺面味道不错，值得推荐",
+        "rating": 4.6,
+        "createTime": "2024-03-29",
+        "user": {
+          "id": "user26",
+          "name": "面食爱好者",
+          "avatar": "/Users/Users26.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "环境一般，但食物很棒",
+        "rating": 4.4,
+        "createTime": "2024-03-30",
+        "user": {
+          "id": "user27",
+          "name": "环境观察者",
+          "avatar": "/Users/Users27.jpg"
+        }
+      }
+    ]
+  },
+  "10": {
+    "id": 10,
+    "name": "台湾风味",
+    "rating": 4.6,
+    "description": "台湾小吃，卤肉饭，珍珠奶茶，带您体验台湾美食文化",
+    "address": "台北路101号",
+    "phone": "0886-89012345",
+    "businessHours": "11:00-22:00",
+    "dishes": [46, 47, 48, 49, 50],
+    "image": "/Restaurant/Restaurant10.jpg",
+    "comments": [
+      {
+        "id": 1,
+        "content": "小吃很地道，很有台湾特色",
+        "rating": 4.6,
+        "createTime": "2024-03-29",
+        "user": {
+          "id": "user28",
+          "name": "台湾小吃爱好者",
+          "avatar": "/Users/Users28.jpg"
+        }
+      },
+      {
+        "id": 2,
+        "content": "卤肉饭味道不错，值得一试",
+        "rating": 4.7,
+        "createTime": "2024-03-30",
+        "user": {
+          "id": "user29",
+          "name": "卤肉饭粉丝",
+          "avatar": "/Users/Users29.jpg"
+        }
+      },
+      {
+        "id": 3,
+        "content": "珍珠奶茶很正宗，服务也很好",
+        "rating": 4.5,
+        "createTime": "2024-03-31",
+        "user": {
+          "id": "user30",
+          "name": "奶茶爱好者",
+          "avatar": "/Users/Users30.jpg"
+        }
+      }
+    ]
+  }
+}
