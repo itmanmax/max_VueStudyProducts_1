@@ -5,8 +5,8 @@
          element-loading-spinner="el-icon-loading"
          element-loading-background="rgba(255, 255, 255, 0.8)">
       <div class="filter-card">
-        <el-input v-model="searchQuery" placeholder="搜索餐厅" clearable />
-        <el-select v-model="sortBy" placeholder="排序方式" class="sort-select">
+        <el-input v-model="searchQuery" placeholder="搜索餐厅" clearable @input="handleSearch"/>
+        <el-select v-model="sortBy" placeholder="排序方式" class="sort-select" @change="handleSort">
           <el-option label="评分从高到低" value="rating-desc" />
           <el-option label="评分从低到高" value="rating-asc" />
         </el-select>
@@ -14,49 +14,78 @@
           <el-icon><Plus /></el-icon>添加餐厅
         </el-button>
       </div>
+
       <div class="restaurant-grid">
-        <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-          <el-image :src="restaurantDetails[restaurant.id].image" fit="cover" class="restaurant-image">
+        <div v-for="restaurant in restaurants" :key="restaurant.restaurant_id" class="restaurant-card">
+          <el-image :src="restaurant.image || defaultImage" fit="cover" class="restaurant-image">
             <template #error>
               <div class="image-slot">
-                <el-icon><picture /></el-icon>
+                <el-icon><Picture /></el-icon>
               </div>
             </template>
           </el-image>
           <div class="restaurant-info">
             <h3>{{ restaurant.name }}</h3>
             <div class="rating">
-              <el-rate v-model="restaurant.rating" disabled show-score />
+              <el-rate 
+                :model-value="Number(restaurant.rating)" 
+                disabled 
+                show-score
+                :max="5"
+                :allow-half="true"
+              />
             </div>
-            <p class="description">{{ restaurantDetails[restaurant.id].description }}</p>
+            <p class="description">{{ restaurant.description || '暂无描述' }}</p>
             <div class="button-group">
-              <el-button type="primary" size="small" @click="viewDetails(restaurant.id)">
+              <el-button type="primary" size="small" @click="viewDetails(restaurant.restaurant_id)">
                 查看详情
               </el-button>
               <el-button type="warning" size="small" @click="editRestaurant(restaurant)">
                 编辑
               </el-button>
-              <el-button type="danger" size="small" @click="deleteRestaurant(restaurant.id)">
+              <el-button type="danger" size="small" @click="deleteRestaurant(restaurant.restaurant_id)">
                 删除
               </el-button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 添加/编辑餐厅对话框 -->
       <el-dialog
         :title="dialogTitle"
         v-model="dialogVisible"
         width="50%"
       >
-        <el-form :model="restaurantForm" label-width="100px">
-          <el-form-item label="餐厅名称">
+        <el-form :model="restaurantForm" label-width="100px" :rules="rules" ref="restaurantFormRef">
+          <el-form-item label="餐厅名称" prop="name">
             <el-input v-model="restaurantForm.name" />
           </el-form-item>
-          <el-form-item label="评分">
-            <el-rate v-model="restaurantForm.rating" :max="5" show-score />
+          <el-form-item label="地址" prop="address">
+            <el-input v-model="restaurantForm.address" />
           </el-form-item>
-          <el-form-item label="描述">
-            <el-input type="textarea" v-model="restaurantForm.description" />
+          <el-form-item label="评分" prop="rating">
+            <el-rate 
+              v-model="restaurantForm.rating"
+              :max="5" 
+              show-score
+              :allow-half="true"
+            />
+          </el-form-item>
+          <el-form-item label="电话" prop="phone">
+            <el-input v-model="restaurantForm.phone" />
+          </el-form-item>
+          <el-form-item label="营业时间" prop="business_hours">
+            <el-input v-model="restaurantForm.business_hours" />
+          </el-form-item>
+          <el-form-item label="图片链接" prop="image">
+            <el-input v-model="restaurantForm.image" />
+          </el-form-item>
+          <el-form-item label="菜系类型" prop="cuisine_type">
+            <el-input v-model="restaurantForm.cuisine_type" />
+          </el-form-item>
+          <el-form-item label="描述" prop="description">
+            <el-input type="textarea" v-model="restaurantForm.description" rows="3"/>
           </el-form-item>
         </el-form>
         <template #footer>
@@ -69,55 +98,112 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import restaurants from '../data/restaurants.json'
-import restaurantDetails from '../data/restaurantDetails.json'
+import { Plus, Picture } from '@element-plus/icons-vue'
+import { restaurantApi } from '../api'
 
 const router = useRouter()
+const loading = ref(false)
+const restaurants = ref([])
 const searchQuery = ref('')
 const sortBy = ref('rating-desc')
-const loading = ref(false)
+const defaultImage = '/path/to/default/image.jpg' // 设置默认图片路径
 
-// 创建本地餐厅数据的副本
-const localRestaurants = ref([...restaurants])
-
-// 对话框相关
+// 表单相关
 const dialogVisible = ref(false)
 const dialogTitle = ref('添加餐厅')
+const restaurantFormRef = ref(null)
 const restaurantForm = ref({
-  id: null,
   name: '',
+  address: '',
   rating: 0,
-  description: ''
+  description: '',
+  phone: '',
+  business_hours: '',
+  image: '',
+  cuisine_type: '',
+  restaurant_id: null
 })
 
-// 计算筛选后的餐厅列表
-const filteredRestaurants = computed(() => {
-  let result = [...localRestaurants.value]
+// 表单验证规则
+const rules = {
+  name: [{ required: true, message: '请输入餐厅名称', trigger: 'blur' }],
+  address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
+  rating: [{ required: true, message: '请选择评分', trigger: 'change' }]
+}
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(restaurant => 
-      restaurant.name.toLowerCase().includes(query)
-    )
+// 获取餐厅列表
+const fetchRestaurants = async () => {
+  loading.value = true
+  try {
+    const response = await restaurantApi.getList()
+    console.log('API Response:', response)
+    
+    // 处理后端返回的数据格式
+    if (response.code === 200 && Array.isArray(response.data)) {
+      restaurants.value = response.data.map(restaurant => ({
+        ...restaurant,
+        restaurant_id: restaurant.restaurantId, // 字段名转换
+        rating: Number(restaurant.rating) || 0,
+        created_at: restaurant.createdAt,
+        updated_at: restaurant.updatedAt,
+        // 如果这些字段暂时没有，提供默认值
+        description: restaurant.description || '暂无描述',
+        phone: restaurant.phone || '暂无电话',
+        business_hours: restaurant.businessHours || '暂无营业时间信息',
+        image: restaurant.image || defaultImage,
+        cuisine_type: restaurant.cuisineType || '暂无分类'
+      }))
+    } else {
+      ElMessage.warning('获取数据格式异常')
+      restaurants.value = []
+    }
+  } catch (error) {
+    console.error('获取餐厅列表失败:', error)
+    console.error('错误详情:', error.response || error)
+    ElMessage.error(`获取餐厅列表失败: ${error.message || '未知错误'}`)
+  } finally {
+    loading.value = false
   }
+}
 
-  result.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'rating-desc':
-        return b.rating - a.rating
-      case 'rating-asc':
-        return a.rating - b.rating
-      default:
-        return 0
+// 搜索餐厅
+const handleSearch = async () => {
+  if (!searchQuery.value) {
+    await fetchRestaurants()
+    return
+  }
+  loading.value = true
+  try {
+    const response = await restaurantApi.search({ query: searchQuery.value })
+    const searchData = Array.isArray(response) ? response : []
+    restaurants.value = searchData.map(restaurant => ({
+      ...restaurant,
+      rating: Number(restaurant.rating) || 0,
+      restaurant_id: restaurant.restaurant_id || restaurant.id
+    }))
+  } catch (error) {
+    console.error('搜索餐厅失败:', error)
+    ElMessage.error('搜索餐厅失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 排序处理
+const handleSort = () => {
+  restaurants.value.sort((a, b) => {
+    const ratingA = Number(a.rating) || 0
+    const ratingB = Number(b.rating) || 0
+    if (sortBy.value === 'rating-desc') {
+      return ratingB - ratingA
+    } else {
+      return ratingA - ratingB
     }
   })
-
-  return result
-})
+}
 
 // 查看详情
 const viewDetails = (id) => {
@@ -128,10 +214,15 @@ const viewDetails = (id) => {
 const showAddDialog = () => {
   dialogTitle.value = '添加餐厅'
   restaurantForm.value = {
-    id: localRestaurants.value.length + 1,
     name: '',
+    address: '',
     rating: 0,
-    description: ''
+    description: '',
+    phone: '',
+    business_hours: '',
+    image: '',
+    cuisine_type: '',
+    restaurant_id: null
   }
   dialogVisible.value = true
 }
@@ -139,47 +230,78 @@ const showAddDialog = () => {
 // 编辑餐厅
 const editRestaurant = (restaurant) => {
   dialogTitle.value = '编辑餐厅'
-  restaurantForm.value = { ...restaurant }
+  restaurantForm.value = {
+    restaurant_id: restaurant.restaurantId,
+    name: restaurant.name,
+    address: restaurant.address,
+    rating: Number(restaurant.rating) || 0,
+    description: restaurant.description || '',
+    phone: restaurant.phone || '',
+    business_hours: restaurant.businessHours || '',
+    image: restaurant.image || '',
+    cuisine_type: restaurant.cuisineType || ''
+  }
   dialogVisible.value = true
 }
 
 // 删除餐厅
-const deleteRestaurant = (id) => {
-  ElMessageBox.confirm('确定要删除这个餐厅吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    localRestaurants.value = localRestaurants.value.filter(r => r.id !== id)
+const deleteRestaurant = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个餐厅吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await restaurantApi.delete(id)
     ElMessage.success('删除成功')
-  })
+    await fetchRestaurants()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除餐厅失败:', error)
+      ElMessage.error('删除餐厅失败')
+    }
+  }
 }
 
 // 提交表单
-const handleSubmit = () => {
-  if (restaurantForm.value.id) {
-    // 编辑现有餐厅
-    const index = localRestaurants.value.findIndex(r => r.id === restaurantForm.value.id)
-    if (index !== -1) {
-      localRestaurants.value[index] = { ...restaurantForm.value }
+const handleSubmit = async () => {
+  if (!restaurantFormRef.value) return
+  
+  try {
+    await restaurantFormRef.value.validate()
+    
+    // 转换为后端期望的数据格式
+    const submitData = {
+      name: restaurantForm.value.name,
+      address: restaurantForm.value.address,
+      rating: Number(restaurantForm.value.rating) || 0,
+      description: restaurantForm.value.description,
+      phone: restaurantForm.value.phone,
+      businessHours: restaurantForm.value.business_hours,
+      image: restaurantForm.value.image,
+      cuisineType: restaurantForm.value.cuisine_type
     }
-  } else {
-    // 添加新餐厅
-    localRestaurants.value.push({
-      ...restaurantForm.value,
-      id: localRestaurants.value.length + 1
-    })
+    
+    if (restaurantForm.value.restaurant_id) {
+      await restaurantApi.update(restaurantForm.value.restaurant_id, submitData)
+      ElMessage.success('编辑成功')
+    } else {
+      await restaurantApi.create(submitData)
+      ElMessage.success('添加成功')
+    }
+    
+    dialogVisible.value = false
+    await fetchRestaurants()
+  } catch (error) {
+    console.error('提交失败:', error)
+    ElMessage.error('提交失败')
   }
-  dialogVisible.value = false
-  ElMessage.success(restaurantForm.value.id ? '编辑成功' : '添加成功')
 }
 
 // 初始化
 onMounted(() => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 800)
+  fetchRestaurants()
 })
 </script>
 
@@ -200,13 +322,6 @@ onMounted(() => {
   width: 150px;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-
 .restaurant-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -220,7 +335,6 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  cursor: pointer;
 }
 
 .restaurant-card:hover {
@@ -255,8 +369,12 @@ onMounted(() => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   overflow: hidden;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
 }
 
 .image-slot {
@@ -267,58 +385,6 @@ onMounted(() => {
   height: 100%;
   background: #f5f7fa;
   color: #909399;
-}
-
-.card-loading {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-/* 修改加载动画样式 */
-:deep(.el-loading-spinner) {
-  .el-loading-text {
-    color: var(--el-color-primary);
-    margin: 8px 0;
-    font-size: 14px;
-  }
-
-  .circular {
-    width: 42px;
-    height: 42px;
-    animation: loading-rotate 2s linear infinite;
-  }
-}
-
-@keyframes loading-rotate {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* 加载遮罩层样式 */
-:deep(.el-loading-mask) {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
-}
-
-/* 添加页面容器样式 */
-.page-container {
-  min-height: 100vh;
-  position: relative;
-}
-
-.button-group {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.filter-card {
-  display: flex;
-  gap: 16px;
-  align-items: center;
 }
 
 :deep(.el-dialog__body) {

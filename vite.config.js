@@ -14,6 +14,12 @@ export default defineConfig({
     static: {
       directory: path.join(__dirname, 'public'),
       publicPath: '/'
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
     }
   }
 })
