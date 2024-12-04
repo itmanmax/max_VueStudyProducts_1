@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 5000
 })
 
@@ -35,95 +34,81 @@ api.interceptors.response.use(
 
 // 认证相关接口
 export const authApi = {
-  login: (data) => api.post('/login', data),
+  login: (data) => api.post('/api/login', data),
   getToken: () => api.get('/api/token'),
   generateToken: (data) => api.post('/api/token/generate', data)
 }
 
 // 用户相关接口
 export const userApi = {
-  // 获取用户信息
-  getInfo: (userId) => api.get(`/users/${userId}`),
-  // 更新用户信息
-  updateInfo: (userId, data) => api.put(`/users/${userId}`, data),
-  // 修改密码
-  updatePassword: (userId, data) => api.put(`/users/${userId}/password`, data),
-  // 更新积分
-  updatePoints: (userId, data) => api.put(`/users/${userId}/points`, data),
-  // 删除用户
-  delete: () => api.delete('/users/delete'),
-  // 按名字查找用户
-  findByName: (name) => api.get(`/users/findByName/${name}`),
-  // 获取用户列表
-  getList: () => api.get('/users/list'),
-  // 用户注册
-  register: (data) => api.post('/users/register', data)
+  getInfo: (userId) => api.get(`/api/users/${userId}`),
+  updateInfo: (userId, data) => api.put(`/api/users/${userId}`, data),
+  updatePassword: (userId, data) => api.put(`/api/users/${userId}/password`, data),
+  updatePoints: (userId, data) => api.put(`/api/users/${userId}/points`, data),
+  delete: () => api.delete('/api/users/delete'),
+  findByName: (name) => api.get(`/api/users/findByName/${name}`),
+  getList: () => api.get('/api/users/list'),
+  register: (data) => api.post('/api/users/register', data)
+}
+
+// 添加认证信息处理函数
+const getAuthParams = () => {
+  return {
+    username: 'admin',
+    password: 'admin123'
+  }
 }
 
 // 餐厅相关接口
 export const restaurantApi = {
-  // 获取餐厅列表
-  getList: () => api.get('/restaurants'),
-  // 添加餐厅
-  create: (data) => api.post('/restaurants', data),
-  // 获取餐厅详情
-  getDetail: (id) => api.get(`/restaurants/${id}`),
-  // 更新餐厅信息
-  update: (id, data) => api.put(`/restaurants/${id}`, data),
-  // 删除餐厅
-  delete: (id) => api.delete(`/restaurants/${id}`),
-  // 获取所有餐厅
-  getAll: () => api.get('/restaurants/all'),
-  // 搜索餐厅
-  search: (params) => api.get('/restaurants/search', { params }),
-  // 获取高评分餐厅
-  getTopRated: () => api.get('/restaurants/top-rated')
+  // 公开接口
+  getList: () => api.get('/api/restaurants'),
+  getDetail: (id) => api.get(`/api/restaurants/${id}`),
+  search: (params) => api.get('/api/restaurants/search', { params }),
+  getTopRated: (limit) => api.get(`/api/restaurants/top-rated/${limit}`),
+  
+  // 需要认证的管理接口
+  create: (data) => api.post('/api/admin/restaurants', data, {
+    params: getAuthParams()
+  }),
+  update: (id, data) => {
+    console.log('Updating restaurant:', { id, data })
+    return api.put(`/api/admin/restaurants/${id}`, data, {
+      params: getAuthParams(),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+  },
+  delete: (id) => api.delete(`/api/admin/restaurants/${id}`, {
+    params: getAuthParams()
+  })
 }
 
 // 菜品相关接口
 export const dishApi = {
-  // 获取菜品列表
-  getList: () => api.get('/dishes'),
-  // 添加菜品
-  create: (data) => api.post('/dishes', data),
-  // 获取菜品详情
-  getDetail: (id) => api.get(`/dishes/${id}`),
-  // 更新菜品
-  update: (id, data) => api.put(`/dishes/${id}`, data),
-  // 删除菜品
-  delete: (id) => api.delete(`/dishes/${id}`),
-  // 更新菜品评分
-  updateRating: (id, data) => api.put(`/dishes/${id}/rating`, data),
-  // 获取餐厅菜品
-  getByRestaurant: (restaurantId) => api.get(`/dishes/restaurant/${restaurantId}`),
-  // 搜索菜品
-  search: (params) => api.get('/dishes/search', { params }),
-  // 按辣度查询
-  getBySpicyLevel: (level) => api.get(`/dishes/spicy/${level}`),
-  // 获取高评分菜品
-  getTopRated: () => api.get('/dishes/top-rated')
+  getList: () => api.get('/api/dishes'),
+  create: (data) => api.post('/api/dishes', data),
+  getDetail: (id) => api.get(`/api/dishes/${id}`),
+  update: (id, data) => api.put(`/api/dishes/${id}`, data),
+  delete: (id) => api.delete(`/api/dishes/${id}`),
+  updateRating: (id, data) => api.put(`/api/dishes/${id}/rating`, data),
+  getByRestaurant: (restaurantId) => api.get(`/api/dishes/restaurant/${restaurantId}`),
+  search: (params) => api.get('/api/dishes/search', { params }),
+  getBySpicyLevel: (level) => api.get(`/api/dishes/spicy/${level}`),
+  getTopRated: () => api.get('/api/dishes/top-rated')
 }
 
 // 反馈评价相关接口
 export const feedbackApi = {
-  // 获取反馈列表
-  getList: () => api.get('/feedback'),
-  // 添加反馈
-  create: (data) => api.post('/feedback', data),
-  // 获取反馈详情
-  getDetail: (id) => api.get(`/feedback/${id}`),
-  // 更新反馈
-  update: (id, data) => api.put(`/feedback/${id}`, data),
-  // 删除反馈
-  delete: (id) => api.delete(`/feedback/${id}`),
-  // 检查用户评价状态
-  checkStatus: () => api.get('/feedback/check'),
-  // 获取餐厅反馈
-  getRestaurantFeedback: (restaurantId) => api.get(`/feedback/restaurant/${restaurantId}`),
-  // 获取餐厅平均评分
-  getRestaurantRating: (restaurantId) => api.get(`/feedback/restaurant/${restaurantId}/rating`),
-  // 获取餐厅高评分反馈
-  getRestaurantTopFeedback: (restaurantId) => api.get(`/feedback/restaurant/${restaurantId}/top`),
-  // 获取用户反馈
-  getUserFeedback: (userId) => api.get(`/feedback/user/${userId}`)
+  getList: () => api.get('/api/feedback'),
+  create: (data) => api.post('/api/feedback', data),
+  getDetail: (id) => api.get(`/api/feedback/${id}`),
+  update: (id, data) => api.put(`/api/feedback/${id}`, data),
+  delete: (id) => api.delete(`/api/feedback/${id}`),
+  checkStatus: () => api.get('/api/feedback/check'),
+  getRestaurantFeedback: (restaurantId) => api.get(`/api/feedback/restaurant/${restaurantId}`),
+  getRestaurantRating: (restaurantId) => api.get(`/api/feedback/restaurant/${restaurantId}/rating`),
+  getRestaurantTopFeedback: (restaurantId) => api.get(`/api/feedback/restaurant/${restaurantId}/top`),
+  getUserFeedback: (userId) => api.get(`/api/feedback/user/${userId}`)
 } 

@@ -10,7 +10,7 @@
           <el-option label="评分从高到低" value="rating-desc" />
           <el-option label="评分从低到高" value="rating-asc" />
         </el-select>
-        <el-button type="primary" @click="showAddDialog">
+        <el-button v-if="checkPermission()" type="primary" @click="showAddDialog">
           <el-icon><Plus /></el-icon>添加餐厅
         </el-button>
       </div>
@@ -40,12 +40,14 @@
               <el-button type="primary" size="small" @click="viewDetails(restaurant.restaurant_id)">
                 查看详情
               </el-button>
-              <el-button type="warning" size="small" @click="editRestaurant(restaurant)">
-                编辑
-              </el-button>
-              <el-button type="danger" size="small" @click="deleteRestaurant(restaurant.restaurant_id)">
-                删除
-              </el-button>
+              <template v-if="checkPermission()">
+                <el-button type="warning" size="small" @click="editRestaurant(restaurant)">
+                  编辑
+                </el-button>
+                <el-button type="danger" size="small" @click="deleteRestaurant(restaurant.restaurant_id)">
+                  删除
+                </el-button>
+              </template>
             </div>
           </div>
         </div>
@@ -212,6 +214,11 @@ const viewDetails = (id) => {
 
 // 显示添加对话框
 const showAddDialog = () => {
+  if (!checkPermission()) {
+    ElMessage.warning('您没有权限执行此操作')
+    return
+  }
+  
   dialogTitle.value = '添加餐厅'
   restaurantForm.value = {
     name: '',
@@ -229,9 +236,16 @@ const showAddDialog = () => {
 
 // 编辑餐厅
 const editRestaurant = (restaurant) => {
+  if (!checkPermission()) {
+    ElMessage.warning('您没有权限执行此操作')
+    return
+  }
+  
+  console.log('Editing restaurant:', restaurant) // 添加日志
+  
   dialogTitle.value = '编辑餐厅'
   restaurantForm.value = {
-    restaurant_id: restaurant.restaurantId,
+    restaurant_id: restaurant.restaurantId, // 使用后端返回的 restaurantId
     name: restaurant.name,
     address: restaurant.address,
     rating: Number(restaurant.rating) || 0,
@@ -253,13 +267,20 @@ const deleteRestaurant = async (id) => {
       type: 'warning'
     })
     
-    await restaurantApi.delete(id)
-    ElMessage.success('删除成功')
-    await fetchRestaurants()
+    try {
+      await restaurantApi.delete(id)
+      ElMessage.success('删除成功')
+      await fetchRestaurants()
+    } catch (error) {
+      if (error.response?.status === 401) {
+        ElMessage.error('没有权限执行此操作')
+      } else {
+        ElMessage.error('删除失败：' + (error.message || '未知错误'))
+      }
+    }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除餐厅失败:', error)
-      ElMessage.error('删除餐厅失败')
     }
   }
 }
@@ -271,32 +292,58 @@ const handleSubmit = async () => {
   try {
     await restaurantFormRef.value.validate()
     
-    // 转换为后端期望的数据格式
     const submitData = {
+      restaurantId: restaurantForm.value.restaurant_id,
       name: restaurantForm.value.name,
       address: restaurantForm.value.address,
       rating: Number(restaurantForm.value.rating) || 0,
-      description: restaurantForm.value.description,
       phone: restaurantForm.value.phone,
       businessHours: restaurantForm.value.business_hours,
       image: restaurantForm.value.image,
-      cuisineType: restaurantForm.value.cuisine_type
+      cuisineType: restaurantForm.value.cuisine_type,
+      description: restaurantForm.value.description
     }
     
-    if (restaurantForm.value.restaurant_id) {
-      await restaurantApi.update(restaurantForm.value.restaurant_id, submitData)
-      ElMessage.success('编辑成功')
-    } else {
-      await restaurantApi.create(submitData)
-      ElMessage.success('添加成功')
+    try {
+      if (restaurantForm.value.restaurant_id) {
+        console.log('Submitting update:', {
+          id: restaurantForm.value.restaurant_id,
+          data: submitData
+        })
+        
+        const id = restaurantForm.value.restaurant_id
+        if (id === undefined || id === null) {
+          throw new Error('Invalid restaurant ID')
+        }
+        
+        const { restaurantId, ...updateData } = submitData
+        await restaurantApi.update(id, updateData)
+        ElMessage.success('编辑成功')
+      } else {
+        await restaurantApi.create(submitData)
+        ElMessage.success('添加成功')
+      }
+      
+      dialogVisible.value = false
+      await fetchRestaurants()
+    } catch (error) {
+      console.error('API Error:', error.response || error)
+      if (error.response?.status === 401) {
+        ElMessage.error('没有权限执行此操作')
+      } else {
+        ElMessage.error(`操作失败：${error.response?.data?.message || error.message || '未知错误'}`)
+      }
     }
-    
-    dialogVisible.value = false
-    await fetchRestaurants()
   } catch (error) {
-    console.error('提交失败:', error)
-    ElMessage.error('提交失败')
+    console.error('表单验证失败:', error)
+    ElMessage.error('请检查表单填写是否正确')
   }
+}
+
+// 添加权限检查方法
+const checkPermission = () => {
+  // 这里可以添加更复杂的权限检查逻辑
+  return true // 暂时默认都有权限
 }
 
 // 初始化

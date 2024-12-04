@@ -18,7 +18,10 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        // 不要重写路径
+        // rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }
