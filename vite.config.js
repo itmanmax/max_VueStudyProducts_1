@@ -20,8 +20,10 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
-        // 不要重写路径
-        // rewrite: (path) => path.replace(/^\/api/, '')
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       }
     }
   }

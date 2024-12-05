@@ -20,8 +20,8 @@
             type="card"
             :touch-move-prevent="false"
           >
-            <el-carousel-item v-for="dish in restaurant.dishes" :key="dish.id">
-              <div class="carousel-item-wrapper" @click="navigateToDish(dish.id)">
+            <el-carousel-item v-for="dish in dishes" :key="dish.dishId">
+              <div class="carousel-item-wrapper" @click="navigateToDish(dish.dishId)">
                 <el-image 
                   :src="dish.image"
                   fit="cover"
@@ -64,6 +64,17 @@
                   <el-icon><Clock /></el-icon>
                   <span>营业时间：{{ restaurant.businessHours }}</span>
                 </div>
+                <div class="tags-container">
+                  <el-tag
+                    v-for="tag in restaurantTags"
+                    :key="tag.tagId"
+                    :type="getTagType(tag.tagName)"
+                    class="tag-item"
+                    effect="light"
+                  >
+                    {{ tag.tagName }}
+                  </el-tag>
+                </div>
               </div>
             </el-card>
 
@@ -74,12 +85,6 @@
                 </div>
               </template>
               <div class="features-content">
-                <div class="feature-tags">
-                  <el-tag>无烟环境</el-tag>
-                  <el-tag>免费WiFi</el-tag>
-                  <el-tag>停车方便</el-tag>
-                  <el-tag>提供包间</el-tag>
-                </div>
                 <p class="restaurant-desc">{{ restaurant.description }}</p>
               </div>
             </el-card>
@@ -94,26 +99,6 @@
                 <el-rate v-model="restaurant.rating" disabled show-score />
               </div>
             </template>
-            <div class="comments-list">
-              <div v-for="comment in restaurant.comments" :key="comment.id" class="comment-item">
-                <el-avatar 
-                  :size="32" 
-                  :src="comment.user?.avatar || defaultAvatar"
-                >
-                  <template #error>
-                    <img :src="defaultAvatar" alt="default avatar">
-                  </template>
-                </el-avatar>
-                <div class="comment-content">
-                  <div class="comment-header">
-                    <span class="username">{{ comment.user?.name || '匿名用户' }}</span>
-                    <el-rate v-model="comment.rating" disabled show-score />
-                  </div>
-                  <p>{{ comment.content }}</p>
-                  <span class="comment-time">{{ comment.createTime }}</span>
-                </div>
-              </div>
-            </div>
           </el-card>
         </el-col>
       </el-row>
@@ -133,27 +118,33 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import restaurants from '../data/restaurants.json'
-import restaurantDetails from '../data/restaurantDetails.json'
-import dishes from '../data/dishes.json'
 import { Location, Phone, Clock } from '@element-plus/icons-vue'
+import { restaurantApi, dishApi, restaurantTagApi } from '../api'
 
 const route = useRoute()
 const router = useRouter()
 const restaurant = ref(null)
+const dishes = ref([])
+const restaurantTags = ref([])
 
 const defaultAvatar = '/Users/default-avatar.jpg'
 
-onMounted(() => {
-  const restaurantId = parseInt(route.params.id)
-  const details = restaurantDetails[restaurantId]
-  if (details) {
-    restaurant.value = {
-      ...details,
-      dishes: details.dishes.map(dishId => dishes[dishId])
-    }
-  } else {
-    ElMessage.error('未找到该餐厅信息')
+onMounted(async () => {
+  try {
+    const restaurantId = route.params.id
+    // 获取餐厅详情
+    const restaurantData = await restaurantApi.getDetail(restaurantId)
+    // 获取餐厅的菜品列表
+    const dishesData = await dishApi.getByRestaurant(restaurantId)
+    // 获取餐厅标签
+    const tagsData = await restaurantTagApi.getByRestaurant(restaurantId)
+    
+    restaurant.value = restaurantData
+    dishes.value = dishesData
+    restaurantTags.value = tagsData
+  } catch (error) {
+    console.error('加载餐厅数据失败:', error)
+    ElMessage.error('加载餐厅数据失败')
     router.back()
   }
 })
@@ -166,6 +157,16 @@ const navigateToDish = (dishId) => {
 
 const handleImageError = (e) => {
   console.error('图片加载失败:', e)
+}
+
+// 根据标签名称返回随机标签类型
+const getTagType = (tagName) => {
+  // 使用标签名称的哈希值来确定颜色类型，这样同样的标签名会显示相同的颜色
+  const types = ['', 'success', 'warning', 'danger', 'info']
+  const hash = tagName.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc)
+  }, 0)
+  return types[Math.abs(hash) % types.length]
 }
 </script>
 
@@ -418,23 +419,22 @@ h2 {
 }
 
 .features-content {
-  .feature-tags {
-    margin-bottom: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    .el-tag {
-      background-color: var(--secondary-color);
-      border-color: var(--secondary-color);
-      color: white;
-    }
-  }
-
   .restaurant-desc {
     color: var(--el-text-color-regular);
     line-height: 1.6;
     margin: 0;
   }
+}
+
+.tags-container {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-item {
+  margin: 0;
+  font-size: 13px;
 }
 </style> 

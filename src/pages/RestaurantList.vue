@@ -140,12 +140,12 @@ const rules = {
 const fetchRestaurants = async () => {
   loading.value = true
   try {
-    const response = await restaurantApi.getList()
-    console.log('API Response:', response)
+    const data = await restaurantApi.getList()
+    console.log('API Response:', data)
     
     // 处理后端返回的数据格式
-    if (response.code === 200 && Array.isArray(response.data)) {
-      restaurants.value = response.data.map(restaurant => ({
+    if (Array.isArray(data)) {
+      restaurants.value = data.map(restaurant => ({
         ...restaurant,
         restaurant_id: restaurant.restaurantId, // 字段名转换
         rating: Number(restaurant.rating) || 0,
@@ -165,7 +165,7 @@ const fetchRestaurants = async () => {
   } catch (error) {
     console.error('获取餐厅列表失败:', error)
     console.error('错误详情:', error.response || error)
-    ElMessage.error(`获取餐厅列表失败: ${error.message || '未知错误'}`)
+    ElMessage.error(`获具体餐厅列表失败: ${error.message || '未知错误'}`)
   } finally {
     loading.value = false
   }
@@ -293,7 +293,6 @@ const handleSubmit = async () => {
     await restaurantFormRef.value.validate()
     
     const submitData = {
-      restaurantId: restaurantForm.value.restaurant_id,
       name: restaurantForm.value.name,
       address: restaurantForm.value.address,
       rating: Number(restaurantForm.value.rating) || 0,
@@ -306,17 +305,22 @@ const handleSubmit = async () => {
     
     try {
       if (restaurantForm.value.restaurant_id) {
+        const id = restaurantForm.value.restaurant_id
         console.log('Submitting update:', {
-          id: restaurantForm.value.restaurant_id,
+          id,
           data: submitData
         })
         
-        const id = restaurantForm.value.restaurant_id
         if (id === undefined || id === null) {
           throw new Error('Invalid restaurant ID')
         }
         
-        const { restaurantId, ...updateData } = submitData
+        // 确保数据格式正确
+        const updateData = {
+          ...submitData,
+          rating: parseFloat(submitData.rating)
+        }
+        
         await restaurantApi.update(id, updateData)
         ElMessage.success('编辑成功')
       } else {
@@ -328,6 +332,13 @@ const handleSubmit = async () => {
       await fetchRestaurants()
     } catch (error) {
       console.error('API Error:', error.response || error)
+      console.log('Request details:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        headers: error.config?.headers
+      })
+      
       if (error.response?.status === 401) {
         ElMessage.error('没有权限执行此操作')
       } else {
@@ -416,6 +427,7 @@ onMounted(() => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
 }
 

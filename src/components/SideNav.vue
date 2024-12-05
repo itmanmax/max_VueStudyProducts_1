@@ -84,6 +84,7 @@ import {
   Close 
 } from '@element-plus/icons-vue'
 import { marked } from 'marked'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -94,11 +95,37 @@ const markdownContent = ref('')
 
 const fetchAnnouncement = async () => {
   try {
-    const response = await fetch('/data/clear.md')
+    const response = await fetch('https://www.maxtral.fun/APIphp/Supermeak/clear.md', {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/markdown,text/plain,*/*'
+      }
+    })
+    
+    if (!response.ok) {
+      console.error('响应状态:', response.status, response.statusText)
+      const text = await response.text()
+      console.error('响应内容:', text)
+      throw new Error('网络响应不正常')
+    }
     const text = await response.text()
+    console.log('成功获取到的内容:', text.substring(0, 100) + '...') // 只显示前100个字符
     markdownContent.value = marked(text)
   } catch (error) {
     console.error('加载公告失败:', error)
+    ElMessage.error('加载公告失败，请稍后重试')
+    // 如果加载失败，显示一个默认的公告内容
+    markdownContent.value = marked(`
+# 系统公告
+
+## 暂时无法加载在线公告
+很抱歉，当前无法加载在线公告内容。这可能是由于以下原因：
+- 网络连接问题
+- 服务器暂时不可用
+- 跨域访问限制
+
+请稍后再试。
+    `)
   }
 }
 

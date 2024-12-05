@@ -29,7 +29,16 @@
             <template #header>
               <div class="dish-info-header">
                 <span>商品介绍</span>
-                <el-rate v-model="dish.rating" disabled show-score />
+                <div class="rating-info">
+                  <el-rate 
+                    v-model="dish.rating" 
+                    disabled 
+                    show-score
+                    :max="5"
+                    :allow-half="true"
+                    score-template="{value}"
+                  />
+                </div>
               </div>
             </template>
             <p class="dish-description">{{ dish.description }}</p>
@@ -40,16 +49,30 @@
               </div>
               <div class="detail-item">
                 <span class="label">所属餐厅：</span>
-                <span>{{ dish.restaurantName }}</span>
+                <span>{{ restaurantName }}</span>
               </div>
               <div class="detail-item">
                 <span class="label">辣度：</span>
-                <el-rate
-                  v-model="dish.spicyLevel"
-                  :max="3"
-                  disabled
-                  class="spicy-rate"
-                />
+                <div class="spicy-info">
+                  <div class="spicy-stars">
+                    <span 
+                      v-for="index in 5" 
+                      :key="index"
+                      class="spicy-star"
+                      :class="{ active: index <= dish.spicyLevel }"
+                    >★</span>
+                  </div>
+                  <span class="spicy-score">{{ dish.spicyLevel.toFixed(1) }}/5.0</span>
+                  <span class="spicy-text">{{ getSpicyLevelText(dish.spicyLevel) }}</span>
+                </div>
+              </div>
+              <div class="detail-item">
+                <span class="label">创建时间：</span>
+                <span>{{ formatDate(dish.createdAt) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">更新时间：</span>
+                <span>{{ formatDate(dish.updatedAt) }}</span>
               </div>
             </div>
           </el-card>
@@ -72,21 +95,47 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Picture } from '@element-plus/icons-vue'
-import dishes from '../data/dishes.json'
+import { dishApi, restaurantApi } from '../api'
 
 const route = useRoute()
 const router = useRouter()
 const dish = ref(null)
+const restaurantName = ref('')
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '暂无'
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 // 获取菜品详情
-onMounted(() => {
+onMounted(async () => {
   try {
     const dishId = route.params.id
-    if (dishes[dishId]) {
-      dish.value = dishes[dishId]
-    } else {
-      ElMessage.error('未找到该菜品信息')
-      router.back()
+    // 获取菜品详情
+    const dishData = await dishApi.getDetail(dishId)
+    dish.value = {
+      ...dishData,
+      rating: parseFloat(dishData.rating) || 0,
+      spicyLevel: Number(dishData.spicyLevel) || 0
+    }
+
+    // 获取餐厅信息
+    if (dishData.restaurantId) {
+      try {
+        const restaurantData = await restaurantApi.getDetail(dishData.restaurantId)
+        restaurantName.value = restaurantData.name
+      } catch (error) {
+        console.error('获取餐厅信息失败:', error)
+        restaurantName.value = '未知餐厅'
+      }
     }
   } catch (error) {
     console.error('加载菜品数据失败:', error)
@@ -103,6 +152,19 @@ const goBack = () => {
 // 图片加载失败处理
 const handleImageError = (e) => {
   console.error('图片加载失败:', e)
+}
+
+// 获取辣度等级文字说明
+const getSpicyLevelText = (level) => {
+  const levels = {
+    0: '不辣',
+    1: '微辣',
+    2: '中辣',
+    3: '特辣',
+    4: '麻辣',
+    5: '变态辣'
+  }
+  return levels[level] || '未知'
 }
 </script>
 
@@ -133,7 +195,7 @@ const handleImageError = (e) => {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  background: var(--secondary-color);
+  background: var(--el-color-primary);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -183,45 +245,61 @@ const handleImageError = (e) => {
   color: #909399;
 }
 
-.comments-card {
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-}
-
-.comments-list {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.comment-item {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #eee;
-
-  &:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-}
-
-.comment-content {
-  flex: 1;
-  
-  p {
-    margin: 0 0 8px;
-  }
-  
-  .comment-time {
-    color: #999;
-    font-size: 12px;
-  }
-}
-
 :deep(.el-rate__icon) {
-  color: var(--secondary-color) !important;
+  color: var(--el-color-primary) !important;
+}
+
+.spicy-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spicy-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.spicy-star {
+  font-size: 16px;
+  color: #dcdfe6;
+  transition: color 0.3s;
+}
+
+.spicy-star.active {
+  color: #ff4d4f;
+}
+
+.spicy-score {
+  color: #ff4d4f;
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 60px;
+}
+
+.spicy-text {
+  color: #ff4d4f;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.rating-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-info :deep(.el-rate__text) {
+  color: var(--el-color-primary);
+  font-weight: bold;
+}
+
+.rating-info :deep(.el-rate__decimal) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  overflow: hidden;
 }
 </style> 
