@@ -1,0 +1,72 @@
+.el-header {
+  background-color: #fff;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-left: 20px;
+  margin-bottom: 0;
+}
+
+.carousel-item-wrapper {
+  height: 100%;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 4px solid #fff;
+  background: #fff;
+  margin: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.carousel-item-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.carousel-item-wrapper:hover .carousel-image {
+  transform: scale(1.05);
+}
+
+.carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px;
+  background: linear-gradient(to top, rgba(29, 61, 50, 0.9), transparent);
+  color: white;
+  text-align: left;
+}
+
+.carousel-caption h3 {
+  font-size: 24px;
+  margin: 0 0 10px;
+  font-weight: 500;
+}
+
+.carousel-caption .price {
+  font-size: 20px;
+  color: #f8c037;
+  margin: 8px 0;
+}
+
+.carousel-caption .description {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 8px 0 0;
+}
+
+/* 其他样式... */ 

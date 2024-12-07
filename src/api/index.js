@@ -102,6 +102,8 @@ export const userApi = {
   findByName: (name) => api.get(`/api/users/findByName/${name}`),
   login: (data) => api.post('/api/users/login', data),
   register: (data) => api.post('/api/users/register', data),
+  getUserProfile: () => api.get('/api/users/profile'),
+  updateUserProfile: (data) => api.put('/api/users/profile', data),
 
   // 管理接口（需要认证）
   update: (userId, data) => api.put(`/api/admin/users/${userId}`, data, { params: getAuthParams() }),

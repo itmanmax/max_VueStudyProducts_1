@@ -19,20 +19,10 @@
         <el-icon><Shop /></el-icon>
         <span>米其林餐厅</span>
       </el-menu-item>
-      <el-sub-menu index="/user" class="menu-item">
-        <template #title>
-          <el-icon><User /></el-icon>
-          <span>用户中心</span>
-        </template>
-        <el-menu-item index="/profile" class="sub-menu-item">
-          <el-icon><UserFilled /></el-icon>
-          <span>个人中心</span>
-        </el-menu-item>
-        <el-menu-item index="/user-management" class="sub-menu-item">
-          <el-icon><Setting /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
-      </el-sub-menu>
+      <el-menu-item index="/user" class="menu-item">
+        <el-icon><User /></el-icon>
+        <span>个人中心</span>
+      </el-menu-item>
     </el-menu>
 
     <div class="announcement-btn">
@@ -43,6 +33,17 @@
       >
         <el-icon><Bell /></el-icon>
         <span>公告</span>
+      </el-button>
+    </div>
+
+    <div class="nav-footer" v-if="isLoggedIn">
+      <el-button 
+        type="danger" 
+        class="logout-btn"
+        @click="handleLogout"
+      >
+        <el-icon><SwitchButton /></el-icon>
+        <span>退出登录</span>
       </el-button>
     </div>
 
@@ -81,7 +82,8 @@ import {
   User,
   Setting,
   Bell,
-  Close 
+  Close,
+  SwitchButton 
 } from '@element-plus/icons-vue'
 import { marked } from 'marked'
 import { ElMessage } from 'element-plus'
@@ -92,6 +94,7 @@ const isCollapse = ref(false)
 const activeIndex = ref('/')
 const drawerVisible = ref(false)
 const markdownContent = ref('')
+const isLoggedIn = ref(localStorage.getItem('token') !== null)
 
 const fetchAnnouncement = async () => {
   try {
@@ -132,6 +135,19 @@ const fetchAnnouncement = async () => {
 const showAnnouncement = () => {
   drawerVisible.value = true
 }
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('isAdmin')
+  isLoggedIn.value = false
+  ElMessage.success('已退出登录')
+  router.push('/')
+}
+
+// 监听 localStorage 的变化
+watch(() => localStorage.getItem('token'), (newValue) => {
+  isLoggedIn.value = newValue !== null
+})
 
 onMounted(() => {
   fetchAnnouncement()
@@ -411,5 +427,18 @@ const handleSelect = (key) => {
 
 .close-btn:hover {
   transform: rotate(90deg);
+}
+
+.nav-footer {
+  margin-top: auto;
+  padding: 16px;
+}
+
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 </style> 

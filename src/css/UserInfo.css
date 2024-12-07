@@ -1,0 +1,42 @@
+.el-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.empty-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  background-color: #f5f7fa;
+}
+
+.empty-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.el-card {
+  border: 1px solid rgba(42, 157, 143, 0.1);
+  transition: all 0.3s ease;
+}
+
+.el-card:hover {
+  box-shadow: 0 8px 20px rgba(29, 61, 50, 0.1);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+} 

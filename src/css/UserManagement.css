@@ -1,0 +1,33 @@
+.user-management {
+  height: 100%;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-input {
+  width: 300px;
+}
+
+.el-button-group .el-button {
+  margin-right: 5px;
+}
+
+.user-list {
+  margin-bottom: 20px;
+}
+
+.el-table {
+  margin-top: 20px;
+}
+
+.el-tag {
+  text-transform: capitalize;
+}
+
+.el-dialog__body {
+  padding-top: 20px;
+} 
