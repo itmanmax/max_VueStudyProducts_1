@@ -1,0 +1,75 @@
+.user-restaurant-list {
+  padding: 20px;
+}
+
+.el-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #fff;
+}
+
+.el-header h2 {
+  margin: 0;
+}
+
+.restaurant-card {
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-5px);
+}
+
+.restaurant-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 4px;
+}
+
+.restaurant-info {
+  padding: 15px 0;
+}
+
+.restaurant-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #303133;
+}
+
+.rating {
+  margin: 10px 0;
+}
+
+.address {
+  color: #909399;
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.description {
+  color: #606266;
+  font-size: 14px;
+  margin: 10px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #EBEEF5;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+} 

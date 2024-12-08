@@ -8,6 +8,7 @@ export const useDishDetails = () => {
   const router = useRouter()
   const dish = ref(null)
   const restaurantName = ref('')
+  const loading = ref(false)
 
   // 格式化日期
   const formatDate = (dateString) => {
@@ -24,29 +25,50 @@ export const useDishDetails = () => {
 
   // 获取菜品详情
   const fetchDishDetails = async () => {
+    loading.value = true
     try {
       const dishId = route.params.id
-      const dishData = await dishApi.getDetail(dishId)
-      dish.value = {
-        ...dishData,
-        rating: parseFloat(dishData.rating) || 0,
-        spicyLevel: Number(dishData.spicyLevel) || 0
+      if (!dishId) {
+        ElMessage.error('无效的菜品ID')
+        router.back()
+        return
       }
 
-      // 获取餐厅信息
-      if (dishData.restaurantId) {
-        try {
-          const restaurantData = await restaurantApi.getDetail(dishData.restaurantId)
-          restaurantName.value = restaurantData.name
-        } catch (error) {
-          console.error('获取餐厅信息失败:', error)
-          restaurantName.value = '未知餐厅'
+      const response = await dishApi.getDetail(dishId)
+      if (response.data.code === 200) {
+        const dishData = response.data.data  // 直接使用返回的data，不需要取[0]
+        dish.value = {
+          ...dishData,
+          rating: parseFloat(dishData.rating) || 0,
+          price: Number(dishData.price) || 0,
+          spicyLevel: Number(dishData.spicyLevel) || 0,
+          description: dishData.description || '暂无描述'
         }
+
+        // 获取餐厅信息
+        if (dishData.restaurantId) {
+          try {
+            const restaurantResponse = await restaurantApi.getDetail(dishData.restaurantId)
+            if (restaurantResponse.data.code === 200) {
+              restaurantName.value = restaurantResponse.data.data.name
+            } else {
+              restaurantName.value = '未知餐厅'
+            }
+          } catch (error) {
+            console.error('获取餐厅信息失败:', error)
+            restaurantName.value = '未知餐厅'
+          }
+        }
+      } else {
+        ElMessage.error(response.data.message || '获取菜品详情失败')
+        router.back()
       }
     } catch (error) {
       console.error('加载菜品数据失败:', error)
       ElMessage.error('加载菜品数据失败')
       router.back()
+    } finally {
+      loading.value = false
     }
   }
 
@@ -81,6 +103,7 @@ export const useDishDetails = () => {
   return {
     dish,
     restaurantName,
+    loading,
     formatDate,
     goBack,
     handleImageError,

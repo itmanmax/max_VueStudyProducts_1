@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { restaurantApi, dishApi, restaurantTagApi } from '../api'
+import { restaurantApi, dishApi, tagApi } from '../api'
 
 export const useRestaurantDetails = () => {
   const route = useRoute()
@@ -9,21 +9,49 @@ export const useRestaurantDetails = () => {
   const restaurant = ref(null)
   const dishes = ref([])
   const restaurantTags = ref([])
-  const defaultAvatar = '/Users/default-avatar.jpg'
+  const defaultAvatar = '/images/default-restaurant.jpg'
 
   // 获取餐厅详情
   const fetchRestaurantDetails = async () => {
     try {
       const restaurantId = route.params.id
-      const restaurantData = await restaurantApi.getDetail(restaurantId)
-      const dishesData = await dishApi.getByRestaurant(restaurantId)
-      const tagsData = await restaurantTagApi.getByRestaurant(restaurantId)
 
-      restaurant.value = restaurantData
-      dishes.value = dishesData
-      restaurantTags.value = tagsData
+      // 获取餐厅详情
+      const restaurantResponse = await restaurantApi.getDetail(restaurantId)
+      if (restaurantResponse.data.code === 200) {
+        restaurant.value = restaurantResponse.data.data
+      } else {
+        ElMessage.error(restaurantResponse.data.message || '获取餐厅详情失败')
+        router.back()
+        return
+      }
+
+      // 获取餐厅菜品
+      try {
+        const dishesResponse = await dishApi.getByRestaurant(restaurantId)
+        if (dishesResponse.data.code === 200) {
+          dishes.value = dishesResponse.data.data.map(dish => ({
+            ...dish,
+            rating: Number(dish.rating) || 0,
+            price: Number(dish.price) || 0,
+            description: dish.description || '暂无描述'
+          }))
+        }
+      } catch (error) {
+        dishes.value = []
+      }
+
+      // 获取餐厅标签
+      try {
+        const tagsResponse = await tagApi.getByRestaurant(restaurantId)
+        if (tagsResponse.data.code === 200) {
+          restaurantTags.value = tagsResponse.data.data
+        }
+      } catch (error) {
+        restaurantTags.value = []
+      }
+
     } catch (error) {
-      console.error('加载餐厅数据失败:', error)
       ElMessage.error('加载餐厅数据失败')
       router.back()
     }
@@ -32,7 +60,18 @@ export const useRestaurantDetails = () => {
   const goBack = () => router.back()
 
   const navigateToDish = (dishId) => {
-    router.push(`/dish/${dishId}`)
+    console.log('正在跳转到菜品详情，dishId:', dishId)
+    if (!dishId) {
+      ElMessage.warning('菜品信息不完整')
+      return
+    }
+    router.push({
+      name: 'DishDetails',
+      params: { id: dishId }
+    }).catch(err => {
+      console.error('路由跳转失败:', err)
+      ElMessage.error('页面跳转失败')
+    })
   }
 
   const handleImageError = (e) => {
@@ -41,7 +80,7 @@ export const useRestaurantDetails = () => {
 
   // 根据标签名称返回随机标签类型
   const getTagType = (tagName) => {
-    const types = ['', 'success', 'warning', 'danger', 'info']
+    const types = ['primary', 'success', 'warning', 'danger', 'info']
     const hash = tagName.split('').reduce((acc, char) => {
       return char.charCodeAt(0) + ((acc << 5) - acc)
     }, 0)

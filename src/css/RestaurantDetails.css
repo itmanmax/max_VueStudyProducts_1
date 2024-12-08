@@ -69,4 +69,56 @@ h2 {
   margin: 8px 0 0;
 }
 
-/* 其他样式... */ 
+/* 餐厅信息卡片样式 */
+.restaurant-info-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 10px;
+  height: calc(100% - 20px);
+}
+
+.info-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.info-header h3 {
+  margin: 0 0 10px 0;
+  color: #303133;
+}
+
+.info-content {
+  color: #606266;
+}
+
+.info-content p {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-content i {
+  color: #409EFF;
+}
+
+.info-content .description {
+  margin: 15px 0;
+  line-height: 1.6;
+}
+
+.tags {
+  margin-top: 20px;
+}
+
+.tags h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+}
+
+.tag-item {
+  margin: 0 8px 8px 0;
+} 

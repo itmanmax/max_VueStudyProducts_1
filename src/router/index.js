@@ -27,6 +27,12 @@ const userRoutes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/dishes/:id',
+    name: 'DishDetails',
+    component: () => import('../pages/DishDetails.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/profile',
     name: 'UserProfile',
     component: () => import('../pages/UserProfile.vue'),

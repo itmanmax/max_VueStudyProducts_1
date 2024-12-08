@@ -1,64 +1,59 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { restaurantApi } from '../api'
+import { restaurantApi, publicUserApi } from '../api'
 
-export const useRestaurantList = () => {
+export function useRestaurantList() {
   const router = useRouter()
   const loading = ref(false)
   const restaurants = ref([])
   const searchQuery = ref('')
   const sortBy = ref('rating-desc')
-  const defaultImage = '/path/to/default/image.jpg'
+  const defaultAvatar = '/images/default-restaurant.jpg'
+  const deleteDialogVisible = ref(false)
+  const restaurantToDelete = ref(null)
+  const isAdmin = ref(false)
 
-  // 表单相关
-  const dialogVisible = ref(false)
-  const dialogTitle = ref('添加餐厅')
-  const restaurantFormRef = ref(null)
-  const restaurantForm = ref({
-    name: '',
-    address: '',
-    rating: 0,
-    description: '',
-    phone: '',
-    business_hours: '',
-    image: '',
-    cuisine_type: '',
-    restaurant_id: null
-  })
-
-  // 表单验证规则
-  const rules = {
-    name: [{ required: true, message: '请输入餐厅名称', trigger: 'blur' }],
-    address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
-    rating: [{ required: true, message: '请选择评分', trigger: 'change' }]
+  // 检查用户权限
+  const checkUserRole = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        isAdmin.value = false
+        return
+      }
+      const response = await publicUserApi.checkRole()
+      if (response.data.code === 200) {
+        isAdmin.value = response.data.data.role === 'ADMIN'
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      isAdmin.value = false
+    }
   }
 
   // 获取餐厅列表
   const fetchRestaurants = async () => {
     loading.value = true
     try {
-      const data = await restaurantApi.getList()
-      console.log('API Response:', data)
-
-      if (Array.isArray(data)) {
-        restaurants.value = data.map(restaurant => ({
+      const response = await restaurantApi.getList()
+      if (response.data.code === 200) {
+        restaurants.value = response.data.data.map(restaurant => ({
           ...restaurant,
           restaurant_id: restaurant.restaurantId,
           rating: Number(restaurant.rating) || 0,
           description: restaurant.description || '暂无描述',
           phone: restaurant.phone || '暂无电话',
           business_hours: restaurant.businessHours || '暂无营业时间信息',
-          image: restaurant.image || defaultImage,
+          image: restaurant.image || defaultAvatar,
           cuisine_type: restaurant.cuisineType || '暂无分类'
         }))
       } else {
-        ElMessage.warning('获取数据格式异常')
-        restaurants.value = []
+        ElMessage.error(response.data.message || '获取餐厅列表失败')
       }
     } catch (error) {
       console.error('获取餐厅列表失败:', error)
-      ElMessage.error(`获具体餐厅列表失败: ${error.message || '未知错误'}`)
+      ElMessage.error('获取餐厅列表失败')
     } finally {
       loading.value = false
     }
@@ -73,12 +68,15 @@ export const useRestaurantList = () => {
     loading.value = true
     try {
       const response = await restaurantApi.search({ query: searchQuery.value })
-      const searchData = Array.isArray(response) ? response : []
-      restaurants.value = searchData.map(restaurant => ({
-        ...restaurant,
-        rating: Number(restaurant.rating) || 0,
-        restaurant_id: restaurant.restaurant_id || restaurant.id
-      }))
+      if (response.data.code === 200) {
+        restaurants.value = response.data.data.map(restaurant => ({
+          ...restaurant,
+          restaurant_id: restaurant.restaurantId,
+          rating: Number(restaurant.rating) || 0
+        }))
+      } else {
+        ElMessage.error(response.data.message || '搜索失败')
+      }
     } catch (error) {
       console.error('搜索餐厅失败:', error)
       ElMessage.error('搜索餐厅失败')
@@ -96,107 +94,56 @@ export const useRestaurantList = () => {
     })
   }
 
-  // 查看详情
-  const viewDetails = (id) => {
+  // 导航到餐厅详情页面
+  const navigateToDetail = (id) => {
     router.push(`/restaurant/${id}`)
   }
 
-  // 显示添加对话框
-  const showAddDialog = () => {
-    dialogTitle.value = '添加餐厅'
-    restaurantForm.value = {
-      name: '',
-      address: '',
-      rating: 0,
-      description: '',
-      phone: '',
-      business_hours: '',
-      image: '',
-      cuisine_type: '',
-      restaurant_id: null
+  // 导航到编辑餐厅页面
+  const navigateToEdit = (id) => {
+    if (!isAdmin.value) {
+      ElMessage.warning('只有管理员可以编辑餐厅')
+      return
     }
-    dialogVisible.value = true
+    router.push(`/restaurant/edit/${id}`)
   }
 
-  // 编辑餐厅
-  const editRestaurant = (restaurant) => {
-    dialogTitle.value = '编辑餐厅'
-    restaurantForm.value = {
-      restaurant_id: restaurant.restaurantId,
-      name: restaurant.name,
-      address: restaurant.address,
-      rating: Number(restaurant.rating) || 0,
-      description: restaurant.description || '',
-      phone: restaurant.phone || '',
-      business_hours: restaurant.businessHours || '',
-      image: restaurant.image || '',
-      cuisine_type: restaurant.cuisineType || ''
+  // 处理删除餐厅
+  const handleDelete = (id) => {
+    if (!isAdmin.value) {
+      ElMessage.warning('只有管理员可以删除餐厅')
+      return
     }
-    dialogVisible.value = true
+    restaurantToDelete.value = id
+    deleteDialogVisible.value = true
   }
 
-  // 删除餐厅
-  const deleteRestaurant = async (id) => {
+  // 确认删除餐厅
+  const confirmDelete = async () => {
+    if (!isAdmin.value) {
+      ElMessage.warning('只有管理员可以删除餐厅')
+      return
+    }
     try {
-      await ElMessageBox.confirm('确定要删除这个餐厅吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-
-      await restaurantApi.delete(id)
-      ElMessage.success('删除成功')
-      await fetchRestaurants()
-    } catch (error) {
-      if (error !== 'cancel') {
-        console.error('删除餐厅失败:', error)
-      }
-    }
-  }
-
-  // 提交表单
-  const handleSubmit = async () => {
-    if (!restaurantFormRef.value) return
-
-    try {
-      await restaurantFormRef.value.validate()
-
-      const submitData = {
-        name: restaurantForm.value.name,
-        address: restaurantForm.value.address,
-        rating: Number(restaurantForm.value.rating) || 0,
-        phone: restaurantForm.value.phone,
-        businessHours: restaurantForm.value.business_hours,
-        image: restaurantForm.value.image,
-        cuisineType: restaurantForm.value.cuisine_type,
-        description: restaurantForm.value.description
-      }
-
-      if (restaurantForm.value.restaurant_id) {
-        const id = restaurantForm.value.restaurant_id
-        await restaurantApi.update(id, submitData)
-        ElMessage.success('编辑成功')
+      const response = await restaurantApi.delete(restaurantToDelete.value)
+      if (response.data.code === 200) {
+        ElMessage.success('删除成功')
+        await fetchRestaurants()
       } else {
-        await restaurantApi.create(submitData)
-        ElMessage.success('添加成功')
+        ElMessage.error(response.data.message || '删除失败')
       }
-
-      dialogVisible.value = false
-      await fetchRestaurants()
     } catch (error) {
-      console.error('表单验证失败:', error)
-      ElMessage.error('请检查表单填写是否正确')
+      console.error('删除餐厅失败:', error)
+      ElMessage.error('删除餐厅失败')
+    } finally {
+      deleteDialogVisible.value = false
+      restaurantToDelete.value = null
     }
   }
 
-  // 权限检查
-  const checkPermission = () => {
-    return true // 暂时默认都有权限
-  }
-
-  // 初始化
-  onMounted(() => {
-    fetchRestaurants()
+  onMounted(async () => {
+    await checkUserRole()
+    await fetchRestaurants()
   })
 
   return {
@@ -204,19 +151,14 @@ export const useRestaurantList = () => {
     restaurants,
     searchQuery,
     sortBy,
-    dialogVisible,
-    dialogTitle,
-    restaurantFormRef,
-    restaurantForm,
-    rules,
-    fetchRestaurants,
+    defaultAvatar,
+    deleteDialogVisible,
+    isAdmin,
     handleSearch,
     handleSort,
-    viewDetails,
-    showAddDialog,
-    editRestaurant,
-    deleteRestaurant,
-    handleSubmit,
-    checkPermission
+    navigateToDetail,
+    navigateToEdit,
+    handleDelete,
+    confirmDelete
   }
 } 
