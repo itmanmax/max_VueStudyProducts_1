@@ -1,23 +1,34 @@
 <template>
-  <div class="side-nav">
+  <div class="admin-side-nav">
     <div class="logo-container">
       <img src="/logo.svg" alt="Logo" class="logo">
-      <h1 class="app-title">惊喜一餐-管理端</h1>
+      <h1 class="app-title">管理后台</h1>
     </div>
 
     <el-menu
       class="nav-menu"
-      :collapse="isCollapse"
       :default-active="activeIndex"
       router
+      :collapse="false"
     >
+      <el-menu-item index="/admin/dashboard" class="menu-item">
+        <el-icon><DataLine /></el-icon>
+        <span>仪表盘</span>
+      </el-menu-item>
+
       <el-menu-item index="/admin/restaurants" class="menu-item">
         <el-icon><Shop /></el-icon>
         <span>餐厅管理</span>
       </el-menu-item>
+
       <el-menu-item index="/admin/users" class="menu-item">
         <el-icon><User /></el-icon>
         <span>用户管理</span>
+      </el-menu-item>
+
+      <el-menu-item index="/admin/developing" class="menu-item" disabled>
+        <el-icon><Tools /></el-icon>
+        <span>功能开发中</span>
       </el-menu-item>
     </el-menu>
 
@@ -37,25 +48,35 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '../stores/userStore'
+import { storeToRefs } from 'pinia'
 import { 
+  DataLine,
   Shop, 
   User,
-  SwitchButton 
+  Food,
+  Collection,
+  Ticket,
+  ChatDotRound,
+  SwitchButton,
+  Tools 
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
-const isCollapse = ref(false)
-const activeIndex = ref('/admin/restaurants')
+const userStore = useUserStore()
+const { isAdmin } = storeToRefs(userStore)
 
-const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('isAdmin')
-  ElMessage.success('已退出登录')
+const isCollapse = ref(false)
+const activeIndex = ref('/admin/dashboard')
+
+// 处理登出
+const handleLogout = async () => {
+  await userStore.handleLogout()
   router.push('/')
 }
 
+// 监听路由变化
 watch(
   () => route.path,
   (path) => {
@@ -66,9 +87,9 @@ watch(
 </script>
 
 <style scoped>
-.side-nav {
+.admin-side-nav {
   height: 100%;
-  background: linear-gradient(180deg, #2A9D8F 0%, #264653 100%);
+  background: linear-gradient(180deg, #1d3d32 0%, #264653 100%);
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
   display: flex;
@@ -136,7 +157,7 @@ watch(
   border: none;
 }
 
-:deep(.el-menu-item), :deep(.el-sub-menu__title) {
+:deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.95) !important;
   transition: all 0.3s ease;
 }
@@ -149,8 +170,8 @@ watch(
 }
 
 .nav-footer {
-  padding: 16px;
   margin-top: auto;
+  padding: 16px;
 }
 
 .logout-btn {
@@ -159,16 +180,5 @@ watch(
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #fff !important;
-  transition: all 0.3s ease;
-  padding: 12px 16px;
-  border: none;
-}
-
-.logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-2px);
 }
 </style> 

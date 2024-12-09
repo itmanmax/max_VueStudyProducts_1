@@ -1,49 +1,55 @@
 import { api } from './request'
 
-// 用户认证相关接口
-export const userApi = {
-  changePassword: (data) => api.put('/api/users/password', data),
-  getProfile: () => api.get('/api/users/profile'),
+// 用户个人相关接口
+export const userProfileApi = {
+  updatePassword: (data) => api.put('/api/users/password', data),
+  getProfile: () => api.get('/api/users/profile/detail'),
   getProfileDetail: () => api.get('/api/users/profile/detail'),
-  getMyRestaurants: () => api.get('/api/users/restaurants'),
-  addRestaurant: (data) => api.post('/api/users/restaurants', data),
-  updateRestaurant: (id, data) => api.put(`/api/users/restaurants/${id}`, data),
-  deleteRestaurant: (id) => api.delete(`/api/users/restaurants/${id}`)
+  getRole: () => api.get('/api/auth/users/profile/role')
 }
 
-// 用户餐厅相关接口
-export const userRestaurantApi = {
-  addFavorite: (id) => api.post(`/api/user/restaurants/${id}/favorite`),
-  removeFavorite: (id) => api.delete(`/api/user/restaurants/${id}/favorite`),
-  rate: (id, data) => api.post(`/api/user/restaurants/${id}/rating`, data),
-  getFavorites: () => api.get('/api/user/restaurants/favorites'),
-  getRecent: () => api.get('/api/user/restaurants/recent')
+// 用户认证相关接口
+export const userAuthApi = {
+  login: (data) => api.post('/api/public/users/login', data),
+  logout: () => api.post('/api/auth/user/logout'),
+  refreshToken: () => api.post('/api/auth/user/token/refresh'),
+  validateToken: () => api.post('/api/auth/user/token/validate')
 }
 
-// 用户标签相关接口
-export const userTagApi = {
-  addFavorite: (tagId) => api.post(`/api/user/tags/${tagId}/favorite`),
-  removeFavorite: (tagId) => api.delete(`/api/user/tags/${tagId}/favorite`),
-  getFavorites: () => api.get('/api/user/tags/favorite')
-}
+// 用户操作相关接口
+export const userOperationApi = {
+  // 餐厅相关
+  favoriteRestaurant: (id) => api.post(`/api/user/restaurants/${id}/favorite`),
+  unfavoriteRestaurant: (id) => api.delete(`/api/user/restaurants/${id}/favorite`),
+  rateRestaurant: (id, data) => api.post(`/api/user/restaurants/${id}/rating`, data),
+  getFavoriteRestaurants: () => api.get('/api/user/restaurants/favorites'),
+  getRecentRestaurants: () => api.get('/api/user/restaurants/recent'),
 
-// 用户餐厅标签相关接口
-export const userRestaurantTagApi = {
-  getPopular: () => api.get('/api/user/restaurant-tags/popular'),
-  getByRestaurant: (restaurantId) => api.get(`/api/user/restaurant-tags/restaurant/${restaurantId}`),
-  search: (params) => api.get('/api/user/restaurant-tags/search', { params })
-}
+  // 菜品相关
+  rateDish: (id, data) => api.post(`/api/user/dishes/${id}/rating`, data),
+  reviewDish: (id, data) => api.post(`/api/user/dishes/${id}/review`, data),
 
-// 用户优惠券相关接口
-export const userCouponApi = {
-  receive: (id) => api.post(`/api/user/coupons/${id}/receive`),
-  use: (id) => api.post(`/api/user/coupons/${id}/use`),
-  getMyCoupons: () => api.get('/api/user/coupons/my')
-}
+  // 标签相关
+  favoriteTag: (tagId) => api.post(`/api/user/tags/${tagId}/favorite`),
+  unfavoriteTag: (tagId) => api.delete(`/api/user/tags/${tagId}/favorite`),
+  getFavoriteTags: () => api.get('/api/user/tags/favorite'),
 
-// 用户评价反馈相关接口
-export const userFeedbackApi = {
-  add: (data) => api.post('/api/user/feedbacks', data),
-  update: (id, data) => api.put(`/api/user/feedbacks/${id}`, data),
+  // 优惠券相关
+  receiveCoupon: (id) => api.post(`/api/user/coupons/${id}/receive`),
+  useCoupon: (id) => api.post(`/api/user/coupons/${id}/use`),
+  getMyCoupons: () => api.get('/api/user/coupons/my'),
+
+  // 反馈相关
+  addFeedback: (data) => api.post('/api/user/feedbacks', data),
+  updateFeedback: (id, data) => api.put(`/api/user/feedbacks/${id}`, data),
   getMyFeedback: () => api.get('/api/user/feedbacks/my')
-} 
+}
+
+// 为了向后兼容，保留原来的导出
+export const userApi = {
+  ...userProfileApi,
+  ...userAuthApi,
+  ...userOperationApi
+}
+
+export default userApi 

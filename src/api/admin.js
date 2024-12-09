@@ -2,10 +2,11 @@ import { api } from './request'
 
 // 管理员认证相关接口
 export const adminAuthApi = {
-  login: (data) => api.post('/api/auth/login', data),
-  logout: () => api.post('/api/auth/logout'),
-  refreshToken: () => api.post('/api/auth/token/refresh'),
-  validateToken: () => api.post('/api/auth/token/validate')
+  login: (data) => api.post('/api/auth/admin/login', data),
+  logout: () => api.post('/api/auth/admin/logout'),
+  refreshToken: () => api.post('/api/auth/admin/token/refresh'),
+  validateToken: () => api.post('/api/auth/admin/token/validate'),
+  getInfo: () => api.get('/api/auth/admin/info')
 }
 
 // 用户管理相关接口
@@ -41,14 +42,10 @@ export const dishManageApi = {
 export const tagManageApi = {
   add: (data) => api.post('/api/admin/tags', data),
   update: (id, data) => api.put(`/api/admin/tags/${id}`, data),
-  delete: (id) => api.delete(`/api/admin/tags/${id}`)
-}
-
-// 餐厅标签管理相关接口
-export const restaurantTagManageApi = {
-  addTag: (restaurantId, data) => api.post(`/api/admin/restaurant-tags/restaurant/${restaurantId}`, data),
-  deleteTag: (restaurantId) => api.delete(`/api/admin/restaurant-tags/restaurant/${restaurantId}`),
-  deleteAllTags: (restaurantId) => api.delete(`/api/admin/restaurant-tags/restaurant/${restaurantId}/all`)
+  delete: (id) => api.delete(`/api/admin/tags/${id}`),
+  addRestaurantTag: (restaurantId, data) => api.post(`/api/admin/tags/restaurant/${restaurantId}`, data),
+  deleteRestaurantTag: (restaurantId) => api.delete(`/api/admin/tags/restaurant/${restaurantId}`),
+  deleteAllRestaurantTags: (restaurantId) => api.delete(`/api/admin/tags/restaurant/${restaurantId}/all`)
 }
 
 // 优惠券管理相关接口

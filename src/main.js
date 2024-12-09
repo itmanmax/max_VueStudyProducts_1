@@ -8,6 +8,7 @@ import 'element-plus/dist/index.css'
 
 // 导入 Element Plus 图标
 import * as ElIcons from '@element-plus/icons-vue'
+import { createPinia } from 'pinia'
 
 const app = createApp(App)
 
@@ -18,4 +19,5 @@ for (const [key, component] of Object.entries(ElIcons)) {
 
 app.use(router)
 app.use(ElementPlus)
+app.use(createPinia())
 app.mount('#app')

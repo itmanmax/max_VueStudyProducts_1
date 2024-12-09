@@ -1,49 +1,33 @@
 <template>
-  <!-- 管理员布局 -->
-  <template v-if="isAdmin">
-    <router-view></router-view>
-  </template>
+  <el-container class="app-container">
+    <!-- 侧边栏 -->
+    <el-aside width="240px" class="app-aside">
+      <AdminSideNav v-if="userStore.isLoggedIn && userStore.isAdmin" />
+      <SideNav v-else />
+    </el-aside>
 
-  <!-- 用户布局 -->
-  <template v-else>
-    <el-container class="app-container">
-      <el-aside width="240px">
-        <SideNav />
-      </el-aside>
-      <el-container>
-        <el-main>
-          <router-view></router-view>
-        </el-main>
-      </el-container>
+    <!-- 主内容区域 -->
+    <el-container class="main-wrapper">
+      <el-main>
+        <router-view></router-view>
+      </el-main>
     </el-container>
-  </template>
+  </el-container>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import SideNav from './components/SideNav.vue'
+import AdminSideNav from './components/AdminSideNav.vue'
+import { useUserStore } from './stores/userStore'
 
-const route = useRoute()
-const isAdmin = ref(false)
+const userStore = useUserStore()
+const { isLoggedIn, isAdmin } = storeToRefs(userStore)
 
-// 监听路由变化，判断是否是管理员页面
-watch(
-  () => route.path,
-  (path) => {
-    isAdmin.value = path.startsWith('/admin')
-  },
-  { immediate: true }
-)
-
-// 监听 localStorage 中的管理员状态
-watch(
-  () => localStorage.getItem('isAdmin'),
-  (newValue) => {
-    isAdmin.value = newValue === 'true'
-  },
-  { immediate: true }
-)
+onMounted(async () => {
+  await userStore.initializeState()
+})
 </script>
 
 <style>
@@ -60,43 +44,40 @@ html, body {
 
 /* 全局变量 */
 :root {
-  --primary-color: #1d3d32;      /* 深绿色 */
-  --secondary-color: #2a9d8f;    /* 青绿色 */
-  --accent-color: #4fd1c5;       /* 浅青色 */
-  --text-primary: #2c3e50;       /* 主要文字颜色 */
-  --text-secondary: #4a5568;     /* 次要文字颜色 */
-  --background-light: #f8f9fa;   /* 浅色背景 */
+  --primary-color: #1d3d32;
+  --secondary-color: #2a9d8f;
+  --accent-color: #4fd1c5;
+  --text-primary: #2c3e50;
+  --text-secondary: #4a5568;
+  --background-light: #f8f9fa;
   --gradient-primary: linear-gradient(135deg, #1d3d32 0%, #2a9d8f 100%);
 }
 
+/* 布局样式 */
 .app-container {
   min-height: 100vh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
   display: flex;
 }
 
-.el-aside {
-  background-color: transparent;
-  border-right: none;
-  padding: 0;
-  flex-shrink: 0;
+.app-aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 240px;
+  z-index: 1000;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.main-wrapper {
+  margin-left: 240px;
+  flex: 1;
+  min-height: 100vh;
+  background-color: #f5f7fa;
 }
 
 .el-main {
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.el-container {
-  margin: 0;
-  padding: 0;
-  width: 100%;
+  padding: 20px;
   height: 100%;
 }
 
@@ -105,16 +86,8 @@ html, body {
   --el-color-primary: var(--secondary-color);
 }
 
-/* 确保内容区域的卡片能够正确排列 */
-.el-row {
-  width: 100%;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-.el-col {
-  padding-left: 10px;
-  padding-right: 10px;
+.el-container {
+  min-height: 100vh;
 }
 
 .el-icon {

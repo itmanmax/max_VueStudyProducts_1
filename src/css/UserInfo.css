@@ -1,24 +1,14 @@
+.el-container {
+  height: 100%;
+}
+
 .el-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.empty-main {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 80px);
-  background-color: #f5f7fa;
-}
-
-.empty-buttons {
-  margin-top: 20px;
-  display: flex;
-  gap: 12px;
+  padding: 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e6e6e6;
 }
 
 .header-buttons {
@@ -26,69 +16,27 @@
   gap: 10px;
 }
 
-.el-card {
-  margin: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
-}
-
-.card-header {
+.empty-main {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #ebeef5;
+  height: 100%;
 }
 
-.el-descriptions {
-  padding: 20px;
-}
-
-.el-descriptions__label {
-  width: 100px;
-  color: #606266;
-}
-
-.dialog-footer {
+.empty-buttons {
+  margin-top: 20px;
   display: flex;
-  justify-content: flex-end;
   gap: 10px;
-  padding-top: 20px;
 }
 
-.status-tag {
-  margin-left: 8px;
-}
-
-.user-info {
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
-  margin: 20px;
-}
-
-.user-info h3 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-  color: #303133;
-}
-
-.user-info p {
-  margin: 5px 0;
-  color: #606266;
-}
-
-/* 新增样式 */
 .profile-card {
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 
 .profile-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
-  padding: 20px;
 }
 
 .profile-info {
@@ -97,18 +45,29 @@
 
 .profile-info h3 {
   margin: 0 0 10px 0;
-  font-size: 24px;
-  color: #303133;
 }
 
 .bio {
-  color: #606266;
-  font-size: 14px;
-  line-height: 1.6;
+  color: #666;
   margin: 0;
 }
 
-.el-avatar {
-  border: 4px solid #fff;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+.user-info {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-tag {
+  margin-right: 0;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 } 

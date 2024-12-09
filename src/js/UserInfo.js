@@ -1,126 +1,106 @@
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { userApi } from '../api'
+import { ref } from 'vue';
+import { useUserStore } from '../stores/userStore';
+import { ElMessage } from 'element-plus';
 
-export function useUserInfo() {
-  const router = useRouter()
-  const isLoggedIn = ref(localStorage.getItem('token') !== null)
-  const userInfo = ref({})
+export const useUserInfo = () => {
+  const userStore = useUserStore();
   
-  // 对话框显示状态
-  const loginDialogVisible = ref(false)
-  const registerDialogVisible = ref(false)
-  
-  // 表单数据
+  // 登录表单数据
   const loginForm = ref({
-    email: '',
+    identifier: '',
     password: ''
-  })
+  });
   
+  // 注册表单数据
   const registerForm = ref({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
-  })
+    confirmPassword: '',
+    nickname: ''
+  });
   
-  // 获取用户信息
-  const fetchUserInfo = async () => {
-    try {
-      const response = await userApi.getProfile()
-      const { code, data } = response.data
-      if (code === 200) {
-        userInfo.value = {
-          username: data.name,
-          email: data.email,
-          createdAt: data.createdAt,
-          role: data.role,
-          status: data.status,
-          points: data.points,
-          lastLogin: data.lastLogin,
-          avatar: data.avatar,
-          bio: data.bio
-        }
-      }
-    } catch (error) {
-      console.error('获取用户信息失败:', error)
-      ElMessage.error('获取用户信息失败')
-    }
-  }
+  // 对话框显示状态
+  const loginDialogVisible = ref(false);
+  const registerDialogVisible = ref(false);
+  const adminLoginDialogVisible = ref(false);
 
+  // 管理员登录表单
+  const adminLoginForm = ref({
+    username: '',
+    password: ''
+  });
+  
+  // 显示登录对话框
+  const showLoginDialog = () => {
+    loginDialogVisible.value = true;
+  };
+
+  // 显示注册对话框
+  const showRegisterDialog = () => {
+    registerDialogVisible.value = true;
+  };
+
+  // 显示管理员登录对话框
+  const showAdminLoginDialog = () => {
+    adminLoginDialogVisible.value = true;
+  };
+  
   // 处理登录
   const handleLogin = async () => {
-    try {
-      const response = await userApi.login(loginForm.value)
-      const { code, message, data } = response.data
-      if (code === 200) {
-        localStorage.setItem('token', data)
-        isLoggedIn.value = true
-        loginDialogVisible.value = false
-        ElMessage.success('登录成功')
-        await fetchUserInfo()
-        router.push('/user')
-      } else {
-        ElMessage.error(message || '登录失败')
-      }
-    } catch (error) {
-      console.error('登录错误:', error)
-      ElMessage.error('登录失败：' + (error.response?.data?.message || '未知错误'))
+    const success = await userStore.handleLogin({
+      account: loginForm.value.identifier,
+      password: loginForm.value.password
+    });
+    
+    if (success) {
+      loginDialogVisible.value = false;
     }
-  }
-  
+  };
+
   // 处理注册
   const handleRegister = async () => {
-    try {
-      if (registerForm.value.password !== registerForm.value.confirmPassword) {
-        ElMessage.error('两次输入的密码不一致')
-        return
-      }
-      await userApi.register(registerForm.value)
-      registerDialogVisible.value = false
-      ElMessage.success('注册成功，请登录')
-      loginDialogVisible.value = true
-    } catch (error) {
-      ElMessage.error('注册失败：' + error.message)
+    if (registerForm.value.password !== registerForm.value.confirmPassword) {
+      ElMessage.error('两次输入的密码不一致');
+      return;
     }
-  }
-  
-  const showLoginDialog = () => {
-    loginDialogVisible.value = true
-  }
-  
-  const showRegisterDialog = () => {
-    registerDialogVisible.value = true
-  }
-  
-  // 退出登录
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    isLoggedIn.value = false
-    userInfo.value = {}
-    ElMessage.success('已退出登录')
-    router.push('/')
-  }
 
-  // 在组件挂载时获取用户信息
-  onMounted(() => {
-    if (isLoggedIn.value) {
-      fetchUserInfo()
+    const success = await userStore.handleRegister(registerForm.value);
+    if (success) {
+      registerDialogVisible.value = false;
+      // 自动填充登录表单
+      loginForm.value.identifier = registerForm.value.email;
+      showLoginDialog();
     }
-  })
-  
+  };
+
+  // 处理管理员登录
+  const handleAdminLogin = async () => {
+    const success = await userStore.handleAdminLogin({
+      username: adminLoginForm.value.username,
+      password: adminLoginForm.value.password
+    });
+    
+    if (success) {
+      adminLoginDialogVisible.value = false;
+    }
+  };
+
   return {
-    isLoggedIn,
-    userInfo,
-    loginDialogVisible,
-    registerDialogVisible,
+    isLoggedIn: userStore.isLoggedIn,
+    userInfo: userStore.userInfo,
     loginForm,
     registerForm,
+    adminLoginForm,
+    loginDialogVisible,
+    registerDialogVisible,
+    adminLoginDialogVisible,
     handleLogin,
     handleRegister,
+    handleAdminLogin,
     showLoginDialog,
     showRegisterDialog,
-    handleLogout
-  }
-} 
+    showAdminLoginDialog,
+    handleLogout: userStore.handleLogout
+  };
+}; 

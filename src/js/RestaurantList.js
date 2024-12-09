@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { restaurantApi, publicUserApi } from '../api'
+import { restaurantApi, publicUserApi, restaurantManageApi } from '../api'
 
 export function useRestaurantList() {
   const router = useRouter()
@@ -12,7 +12,11 @@ export function useRestaurantList() {
   const defaultAvatar = '/images/default-restaurant.jpg'
   const deleteDialogVisible = ref(false)
   const restaurantToDelete = ref(null)
-  const isAdmin = ref(false)
+  const isAdmin = ref(localStorage.getItem('isAdmin') === 'true')
+
+  // 添加编辑对话框相关的状态
+  const editDialogVisible = ref(false)
+  const editingRestaurant = ref(null)
 
   // 检查用户权限
   const checkUserRole = async () => {
@@ -24,7 +28,8 @@ export function useRestaurantList() {
       }
       const response = await publicUserApi.checkRole()
       if (response.data.code === 200) {
-        isAdmin.value = response.data.data.role === 'ADMIN'
+        isAdmin.value = response.data.data.includes('ADMIN')
+        localStorage.setItem('isAdmin', isAdmin.value.toString())
       }
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -99,18 +104,44 @@ export function useRestaurantList() {
     router.push(`/restaurant/${id}`)
   }
 
-  // 导航到编辑餐厅页面
-  const navigateToEdit = (id) => {
-    if (!isAdmin.value) {
+  // 修改编辑餐厅的函数
+  const editRestaurant = (restaurant) => {
+    const isAdminUser = localStorage.getItem('isAdmin') === 'true'
+    if (!isAdminUser) {
       ElMessage.warning('只有管理员可以编辑餐厅')
       return
     }
-    router.push(`/restaurant/edit/${id}`)
+    // 设置要编辑的餐厅数据
+    editingRestaurant.value = { ...restaurant }
+    // 显示编辑对话框
+    editDialogVisible.value = true
+  }
+
+  // 添加保存编辑的函数
+  const handleEditSubmit = async () => {
+    try {
+      const response = await restaurantManageApi.update(
+        editingRestaurant.value.restaurant_id, 
+        editingRestaurant.value
+      )
+      if (response.data.code === 200) {
+        ElMessage.success('更新成功')
+        editDialogVisible.value = false
+        // 刷新餐厅列表
+        await fetchRestaurants()
+      } else {
+        ElMessage.error(response.data.message || '更新失败')
+      }
+    } catch (error) {
+      console.error('更新餐厅失败:', error)
+      ElMessage.error('更新餐厅失败')
+    }
   }
 
   // 处理删除餐厅
   const handleDelete = (id) => {
-    if (!isAdmin.value) {
+    const isAdminUser = localStorage.getItem('isAdmin') === 'true'
+    if (!isAdminUser) {
       ElMessage.warning('只有管理员可以删除餐厅')
       return
     }
@@ -120,12 +151,13 @@ export function useRestaurantList() {
 
   // 确认删除餐厅
   const confirmDelete = async () => {
-    if (!isAdmin.value) {
+    const isAdminUser = localStorage.getItem('isAdmin') === 'true'
+    if (!isAdminUser) {
       ElMessage.warning('只有管理员可以删除餐厅')
       return
     }
     try {
-      const response = await restaurantApi.delete(restaurantToDelete.value)
+      const response = await restaurantManageApi.delete(restaurantToDelete.value)
       if (response.data.code === 200) {
         ElMessage.success('删除成功')
         await fetchRestaurants()
@@ -141,6 +173,11 @@ export function useRestaurantList() {
     }
   }
 
+  // 检查是否有管理员权限
+  const checkPermission = () => {
+    return localStorage.getItem('isAdmin') === 'true'
+  }
+
   onMounted(async () => {
     await checkUserRole()
     await fetchRestaurants()
@@ -153,12 +190,16 @@ export function useRestaurantList() {
     sortBy,
     defaultAvatar,
     deleteDialogVisible,
+    editDialogVisible,
+    editingRestaurant,
     isAdmin,
     handleSearch,
     handleSort,
     navigateToDetail,
-    navigateToEdit,
+    editRestaurant,
+    handleEditSubmit,
     handleDelete,
-    confirmDelete
+    confirmDelete,
+    checkPermission
   }
 } 

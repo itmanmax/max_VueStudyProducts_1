@@ -103,20 +103,15 @@ const fetchAnnouncement = async () => {
       headers: {
         'Accept': 'text/markdown,text/plain,*/*'
       }
-    })
+    });
     
     if (!response.ok) {
-      console.error('响应状态:', response.status, response.statusText)
-      const text = await response.text()
-      console.error('响应内容:', text)
-      throw new Error('网络响应不正常')
+      throw new Error('网络响应不正常');
     }
-    const text = await response.text()
-    console.log('成功获取到的内容:', text.substring(0, 100) + '...') // 只显示前100个字符
-    markdownContent.value = marked(text)
+    const text = await response.text();
+    markdownContent.value = marked(text);
   } catch (error) {
-    console.error('加载公告失败:', error)
-    ElMessage.error('加载公告失败，请稍后重试')
+    ElMessage.error('加载公告失败，请稍后重试');
     // 如果加载失败，显示一个默认的公告内容
     markdownContent.value = marked(`
 # 系统公告
@@ -128,9 +123,9 @@ const fetchAnnouncement = async () => {
 - 跨域访问限制
 
 请稍后再试。
-    `)
+    `);
   }
-}
+};
 
 const showAnnouncement = () => {
   drawerVisible.value = true

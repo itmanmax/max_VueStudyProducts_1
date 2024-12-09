@@ -37,7 +37,7 @@
             </div>
             <p class="description">{{ restaurant.description || '暂无描述' }}</p>
             <div class="button-group">
-              <el-button type="primary" size="small" @click="viewDetails(restaurant.restaurant_id)">
+              <el-button type="primary" size="small" @click="navigateToDetail(restaurant.restaurant_id)">
                 查看详情
               </el-button>
               <template v-if="checkPermission()">
@@ -95,15 +95,68 @@
           <el-button type="primary" @click="handleSubmit">确定</el-button>
         </template>
       </el-dialog>
+
+      <!-- 编辑餐厅对话框 -->
+      <el-dialog
+        v-model="editDialogVisible"
+        title="编辑餐厅"
+        width="50%"
+      >
+        <el-form 
+          v-if="editingRestaurant"
+          :model="editingRestaurant" 
+          label-width="100px"
+        >
+          <el-form-item label="餐厅名称">
+            <el-input v-model="editingRestaurant.name" />
+          </el-form-item>
+          <el-form-item label="地址">
+            <el-input v-model="editingRestaurant.address" />
+          </el-form-item>
+          <el-form-item label="评分">
+            <el-rate 
+              v-model="editingRestaurant.rating"
+              :max="5" 
+              show-score
+              :allow-half="true"
+            />
+          </el-form-item>
+          <el-form-item label="电话">
+            <el-input v-model="editingRestaurant.phone" />
+          </el-form-item>
+          <el-form-item label="营业时间">
+            <el-input v-model="editingRestaurant.business_hours" />
+          </el-form-item>
+          <el-form-item label="图片链接">
+            <el-input v-model="editingRestaurant.image" />
+          </el-form-item>
+          <el-form-item label="菜系类型">
+            <el-input v-model="editingRestaurant.cuisine_type" />
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input 
+              type="textarea" 
+              v-model="editingRestaurant.description" 
+              :rows="3"
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="handleEditSubmit">保存</el-button>
+          </span>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRestaurantList } from '../js/RestaurantList' // 引入新的 JS 文件
+import { useRestaurantList } from '../js/RestaurantList'
 import { Plus, Picture } from '@element-plus/icons-vue'
 import { restaurantApi } from '../api'
-import '../css/RestaurantList.css'  // 引入新的 CSS 文件
+import '../css/RestaurantList.css'
 
 const {
   loading,
@@ -118,14 +171,15 @@ const {
   fetchRestaurants,
   handleSearch,
   handleSort,
-  viewDetails,
+  navigateToDetail,
   showAddDialog,
   editRestaurant,
   deleteRestaurant,
   handleSubmit,
-  checkPermission
-} = useRestaurantList() // 使用自定义组合函数
-
-// ... existing template code ...
+  checkPermission,
+  editDialogVisible,
+  editingRestaurant,
+  handleEditSubmit
+} = useRestaurantList()
 </script>
 
