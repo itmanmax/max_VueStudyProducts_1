@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { publicUserApi, adminAuthApi } from '../api'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 
 // 定义默认头像常量
 const DEFAULT_AVATAR = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
@@ -10,6 +11,7 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = ref(false)
   const isAdmin = ref(false)
   const userInfo = ref(null)
+  const router = useRouter()
 
   // 初始化状态
   const initializeState = async () => {
@@ -146,6 +148,9 @@ export const useUserStore = defineStore('user', () => {
         // 获取管理员信息
         await getAdminInfo()
         ElMessage.success('管理员登录成功')
+        
+        // 登录成功后跳转到管理员页面
+        router.push('/admin')
         return true
       } else {
         ElMessage.error(response.data.message || '登录失败')

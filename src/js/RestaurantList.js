@@ -18,6 +18,27 @@ export function useRestaurantList() {
   const editDialogVisible = ref(false)
   const editingRestaurant = ref(null)
 
+  // 添加餐厅对话框相关状态
+  const dialogVisible = ref(false)
+  const dialogTitle = ref('')
+  const restaurantFormRef = ref(null)
+  const restaurantForm = ref({
+    name: '',
+    address: '',
+    rating: 0,
+    phone: '',
+    business_hours: '',
+    image: '',
+    cuisine_type: '',
+    description: ''
+  })
+
+  // 表单验证规则
+  const rules = {
+    name: [{ required: true, message: '请输入餐厅名称', trigger: 'blur' }],
+    address: [{ required: true, message: '请输入地址', trigger: 'blur' }]
+  }
+
   // 检查用户权限
   const checkUserRole = async () => {
     try {
@@ -178,6 +199,43 @@ export function useRestaurantList() {
     return localStorage.getItem('isAdmin') === 'true'
   }
 
+  // 显示添加餐厅对话框
+  const showAddDialog = () => {
+    dialogTitle.value = '添加餐厅'
+    restaurantForm.value = {
+      name: '',
+      address: '',
+      rating: 0,
+      phone: '',
+      business_hours: '',
+      image: '',
+      cuisine_type: '',
+      description: ''
+    }
+    dialogVisible.value = true
+  }
+
+  // 处理提交
+  const handleSubmit = async () => {
+    if (!restaurantFormRef.value) return
+    
+    try {
+      await restaurantFormRef.value.validate()
+      const response = await restaurantManageApi.add(restaurantForm.value)
+      
+      if (response.data.code === 200) {
+        ElMessage.success('添加成功')
+        dialogVisible.value = false
+        await fetchRestaurants()
+      } else {
+        ElMessage.error(response.data.message || '添加失败')
+      }
+    } catch (error) {
+      console.error('添加餐厅失败:', error)
+      ElMessage.error('添加餐厅失败')
+    }
+  }
+
   onMounted(async () => {
     await checkUserRole()
     await fetchRestaurants()
@@ -200,6 +258,13 @@ export function useRestaurantList() {
     handleEditSubmit,
     handleDelete,
     confirmDelete,
-    checkPermission
+    checkPermission,
+    dialogVisible,
+    dialogTitle,
+    restaurantFormRef,
+    restaurantForm,
+    rules,
+    showAddDialog,
+    handleSubmit
   }
 } 

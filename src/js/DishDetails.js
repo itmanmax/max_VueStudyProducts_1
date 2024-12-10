@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { dishApi, restaurantApi } from '../api'
+import { publicDishApi, restaurantApi } from '../api'
 
 export const useDishDetails = () => {
   const route = useRoute()
@@ -34,9 +34,9 @@ export const useDishDetails = () => {
         return
       }
 
-      const response = await dishApi.getDetail(dishId)
+      const response = await publicDishApi.getDetail(dishId)
       if (response.data.code === 200) {
-        const dishData = response.data.data  // 直接使用返回的data，不需要取[0]
+        const dishData = response.data.data
         dish.value = {
           ...dishData,
           rating: parseFloat(dishData.rating) || 0,

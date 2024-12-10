@@ -44,6 +44,12 @@ const userRoutes = [
 // 管理员路由
 const adminRoutes = [
   {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../pages/Admin.vue'),
+    meta: { requiresAdmin: true }
+  },
+  {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: () => import('../pages/AdminDashboard.vue'),
@@ -94,6 +100,13 @@ router.beforeEach(async (to, from, next) => {
           next('/')
           return
         }
+
+        // 如果是管理员且访问根路径，重定向到管理员页面
+        if (isAdminUser && to.path === '/') {
+          next('/admin')
+          return
+        }
+
         // token 有效，继续导航
         next()
         return

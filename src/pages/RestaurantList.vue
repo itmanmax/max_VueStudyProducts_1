@@ -44,7 +44,7 @@
                 <el-button type="warning" size="small" @click="editRestaurant(restaurant)">
                   编辑
                 </el-button>
-                <el-button type="danger" size="small" @click="deleteRestaurant(restaurant.restaurant_id)">
+                <el-button type="danger" size="small" @click="handleDelete(restaurant.restaurant_id)">
                   删除
                 </el-button>
               </template>
@@ -87,7 +87,11 @@
             <el-input v-model="restaurantForm.cuisine_type" />
           </el-form-item>
           <el-form-item label="描述" prop="description">
-            <el-input type="textarea" v-model="restaurantForm.description" rows="3"/>
+            <el-input 
+              type="textarea" 
+              v-model="restaurantForm.description" 
+              :rows="3"
+            />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -148,6 +152,21 @@
           </span>
         </template>
       </el-dialog>
+
+      <!-- 删除确认对话框 -->
+      <el-dialog
+        v-model="deleteDialogVisible"
+        title="确认删除"
+        width="30%"
+      >
+        <span>确定要删除这个餐厅吗？此操作不可恢复。</span>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="deleteDialogVisible = false">取消</el-button>
+            <el-button type="danger" @click="confirmDelete">确定</el-button>
+          </span>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -168,18 +187,21 @@ const {
   restaurantFormRef,
   restaurantForm,
   rules,
-  fetchRestaurants,
+  defaultAvatar,
+  deleteDialogVisible,
+  editDialogVisible,
+  editingRestaurant,
+  isAdmin,
   handleSearch,
   handleSort,
   navigateToDetail,
   showAddDialog,
-  editRestaurant,
-  deleteRestaurant,
   handleSubmit,
-  checkPermission,
-  editDialogVisible,
-  editingRestaurant,
-  handleEditSubmit
+  editRestaurant,
+  handleDelete,
+  confirmDelete,
+  handleEditSubmit,
+  checkPermission
 } = useRestaurantList()
 </script>
 

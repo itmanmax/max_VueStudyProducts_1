@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { restaurantApi, dishApi, tagApi } from '../api'
+import { restaurantApi, publicDishApi, publicTagApi } from '../api'
 
 export const useRestaurantDetails = () => {
   const route = useRoute()
@@ -28,7 +28,7 @@ export const useRestaurantDetails = () => {
 
       // 获取餐厅菜品
       try {
-        const dishesResponse = await dishApi.getByRestaurant(restaurantId)
+        const dishesResponse = await publicDishApi.getByRestaurant(restaurantId)
         if (dishesResponse.data.code === 200) {
           dishes.value = dishesResponse.data.data.map(dish => ({
             ...dish,
@@ -43,7 +43,7 @@ export const useRestaurantDetails = () => {
 
       // 获取餐厅标签
       try {
-        const tagsResponse = await tagApi.getByRestaurant(restaurantId)
+        const tagsResponse = await publicTagApi.getByRestaurant(restaurantId)
         if (tagsResponse.data.code === 200) {
           restaurantTags.value = tagsResponse.data.data
         }
