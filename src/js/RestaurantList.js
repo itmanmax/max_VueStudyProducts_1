@@ -215,7 +215,7 @@ export function useRestaurantList() {
     dialogVisible.value = true
   }
 
-  // 处理提交
+  // 处理提交添加餐厅
   const handleSubmit = async () => {
     if (!restaurantFormRef.value) return
     

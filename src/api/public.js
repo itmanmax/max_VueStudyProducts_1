@@ -38,7 +38,7 @@ export const publicUserApi = {
   register: (data) => api.post('/api/public/users/register', data),
   resetPassword: (data) => api.post('/api/public/users/password-reset', data),
   checkRole: () => api.get('/api/auth/users/profile/role'),
-  getProfile: () => api.get('/api/users/profile/detail')
+  getProfileDetail: () => api.get('/api/users/profile/detail')
 }
 
 // 优惠券相关接口

@@ -17,4 +17,12 @@ export {
   tagManageApi,
   couponManageApi,
   feedbackManageApi
-} from './admin' 
+} from './admin'
+
+// 导出用户相关接口
+export {
+  userApi,
+  userProfileApi,
+  userAuthApi,
+  userOperationApi
+} from './user' 

@@ -44,9 +44,18 @@ export const useUserStore = defineStore('user', () => {
   // 获取普通用户信息
   const getUserInfo = async () => {
     try {
-      const response = await publicUserApi.getProfile()
+      const response = await publicUserApi.getProfileDetail()
       if (response.data.code === 200) {
-        userInfo.value = response.data.data
+        userInfo.value = {
+          ...response.data.data,
+          avatar: response.data.data.avatar || DEFAULT_AVATAR,
+          bio: response.data.data.bio || '这个人很懒，什么都没写~',
+          nickname: response.data.data.nickname || response.data.data.name,
+          status: response.data.data.status || 'active',
+          lastLogin: response.data.data.lastLogin,
+          createdAt: response.data.data.createdAt,
+          updatedAt: response.data.data.updatedAt
+        }
       }
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -91,6 +100,9 @@ export const useUserStore = defineStore('user', () => {
       if (response.data.code === 200) {
         localStorage.setItem('token', response.data.data)
         isLoggedIn.value = true
+        
+        await getUserInfo()
+        
         await initializeState()
         ElMessage.success('登录成功')
         return true
@@ -104,7 +116,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 处理登出
+  // 处理登
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('isAdmin')

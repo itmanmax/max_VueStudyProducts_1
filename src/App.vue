@@ -12,6 +12,9 @@
         <router-view></router-view>
       </el-main>
     </el-container>
+
+    <!-- AI对话框 -->
+    <AiChatBox />
   </el-container>
 </template>
 
@@ -20,6 +23,7 @@ import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import SideNav from './components/SideNav.vue'
 import AdminSideNav from './components/AdminSideNav.vue'
+import AiChatBox from './components/AiChatBox.vue'
 import { useUserStore } from './stores/userStore'
 
 const userStore = useUserStore()
@@ -93,5 +97,10 @@ html, body {
 .el-icon {
   font-size: 18px;
   margin-right: 12px;
+}
+
+/* 排除AI聊天按钮的图标样式 */
+.chat-toggle-btn .el-icon {
+  margin-right: 0;
 }
 </style>
